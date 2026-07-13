@@ -34,6 +34,17 @@ export function createApp() {
   app.use("/api/reports", reportsRouter);
   app.use("/api/audit-logs", auditRouter);
 
+  if (env.nodeEnv === "production") {
+    const clientDist = path.join(process.cwd(), "..", "client", "dist");
+    app.use(express.static(clientDist));
+    app.use((req, res, next) => {
+      if (req.method !== "GET" || req.path.startsWith("/api") || req.path.startsWith("/uploads")) {
+        return next();
+      }
+      res.sendFile(path.join(clientDist, "index.html"));
+    });
+  }
+
   app.use(notFound);
   app.use(errorHandler);
 
