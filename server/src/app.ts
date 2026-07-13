@@ -18,11 +18,13 @@ import { auditRouter } from "./modules/audit/audit.routes";
 export function createApp() {
   const app = express();
 
-  // Render (and most PaaS hosts) sit the app behind exactly one reverse proxy.
-  // Without this, req.ip resolves to that proxy's internal address for every
-  // visitor — breaking both the audit log's IP column and the per-IP login
-  // rate limiter, which would otherwise share one bucket across all users.
-  app.set("trust proxy", 1);
+  // Render's ingress path has more than one internal hop between its edge and
+  // this container (confirmed empirically: trusting only 1 hop still resolved
+  // to an internal Render address, not the visitor's IP). Render's edge is the
+  // real trust boundary here — it strips/overwrites any client-supplied
+  // X-Forwarded-For before adding its own — so trusting the whole chain and
+  // taking the leftmost (original) address is correct and safe for this host.
+  app.set("trust proxy", true);
 
   app.use(cors({ origin: env.clientOrigin, credentials: true }));
   app.use(cookieParser());
