@@ -18,6 +18,12 @@ import { auditRouter } from "./modules/audit/audit.routes";
 export function createApp() {
   const app = express();
 
+  // Render (and most PaaS hosts) sit the app behind exactly one reverse proxy.
+  // Without this, req.ip resolves to that proxy's internal address for every
+  // visitor — breaking both the audit log's IP column and the per-IP login
+  // rate limiter, which would otherwise share one bucket across all users.
+  app.set("trust proxy", 1);
+
   app.use(cors({ origin: env.clientOrigin, credentials: true }));
   app.use(cookieParser());
   app.use(express.json());
