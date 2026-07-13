@@ -1,0 +1,270 @@
+@import "@fontsource-variable/inter/index.css";
+@import "@fontsource-variable/playfair-display/index.css";
+@import "@fontsource-variable/cairo/index.css";
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+  Two-layer token system:
+  1. Brand tokens (forest/gold/cream/ink/sage/gold-soft) — used directly across
+     ~40 page files via utilities like bg-forest, text-gold/70, etc.
+  2. shadcn semantic tokens (--background, --primary, --card, ...) — consumed
+     automatically by shadcn-derived primitives (Button, Input, Select, Table...).
+  Both layers define light values in :root and dark overrides in .dark, then
+  get aliased through `@theme inline` so Tailwind utility classes resolve to
+  whichever value is active for the current theme. --forest-deep (espresso
+  brown) is intentionally constant across both themes: it doubles as the
+  modal/drawer scrim color and the LoginPage's fixed-dark showcase panel, both
+  of which are deliberately theme-independent.
+*/
+:root {
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+
+  /* body/heading font stack — swapped for Arabic-capable Cairo under [dir="rtl"];
+     --font-serif (brand wordmark) is intentionally excluded, it always stays Latin/Playfair */
+  --font-sans-value: "Inter Variable", system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-heading-value: "Playfair Display Variable", Georgia, serif;
+
+  --forest-deep: #3d2a1e;
+
+  /* shadcn semantic layer — light */
+  --background: #f6f4ef;
+  --foreground: #241b14;
+  --card: #ffffff;
+  --card-foreground: #241b14;
+  --popover: #ffffff;
+  --popover-foreground: #241b14;
+  --primary: #2f4632;
+  --primary-foreground: #ffffff;
+  --secondary: #ede7dc;
+  --secondary-foreground: #241b14;
+  --muted: #efeae0;
+  --muted-foreground: #6b5f4e;
+  --accent: #efeae0;
+  --accent-foreground: #241b14;
+  --destructive: #c75450;
+  --success: #1f8a5f;
+  --border: rgba(36, 27, 20, 0.12);
+  --input: rgba(36, 27, 20, 0.18);
+  --ring: #2f4632;
+  --chart-1: #2f4632;
+  --chart-2: #a6854d;
+  --chart-3: #1f8a5f;
+  --chart-4: #6b5f4e;
+  --chart-5: #c75450;
+  --radius: 0.7rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #241b14;
+  --sidebar-primary: #2f4632;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #efeae0;
+  --sidebar-accent-foreground: #241b14;
+  --sidebar-border: rgba(36, 27, 20, 0.12);
+  --sidebar-ring: #2f4632;
+
+  /* brand layer — light */
+  --forest: #2f4632;
+  --gold: #a6854d;
+  --gold-soft: #d9c08f;
+  --cream: #f6f4ef;
+  --sage: #241b14;
+
+  --shadow-resting: 0 1px 1px 0 rgba(47, 32, 20, 0.03), 0 10px 24px -12px rgba(47, 32, 20, 0.16);
+  --shadow-raised: 0 2px 4px -1px rgba(47, 32, 20, 0.08), 0 16px 36px -12px rgba(47, 32, 20, 0.2);
+  --shadow-glow-primary: 0 0 24px rgba(47, 70, 50, 0.18);
+  --shadow-glow-gold: 0 0 24px rgba(166, 133, 77, 0.18);
+}
+
+.dark {
+  /* shadcn semantic layer — dark */
+  --background: #1a140f;
+  --foreground: #ede7dc;
+  --card: #241c15;
+  --card-foreground: #ede7dc;
+  --popover: #2a2119;
+  --popover-foreground: #ede7dc;
+  --primary: #7fa383;
+  --primary-foreground: #16210f;
+  --secondary: #2a2119;
+  --secondary-foreground: #ede7dc;
+  --muted: #2a2119;
+  --muted-foreground: #a89880;
+  --accent: #322820;
+  --accent-foreground: #ede7dc;
+  --destructive: #e8918d;
+  --success: #4cbe8c;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.15);
+  --ring: #7fa383;
+  --chart-1: #7fa383;
+  --chart-2: #c7a468;
+  --chart-3: #4cbe8c;
+  --chart-4: #a89880;
+  --chart-5: #e8918d;
+  --sidebar: #241c15;
+  --sidebar-foreground: #ede7dc;
+  --sidebar-primary: #7fa383;
+  --sidebar-primary-foreground: #16210f;
+  --sidebar-accent: #322820;
+  --sidebar-accent-foreground: #ede7dc;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: #7fa383;
+
+  /* brand layer — dark */
+  --forest: #7fa383;
+  --gold: #c7a468;
+  --gold-soft: #4a3a22;
+  --cream: #1a140f;
+  --sage: #ffffff;
+
+  --shadow-resting: 0 1px 1px 0 rgba(0, 0, 0, 0.2), 0 12px 28px -12px rgba(0, 0, 0, 0.5);
+  --shadow-raised: 0 2px 4px -1px rgba(0, 0, 0, 0.3), 0 18px 40px -12px rgba(0, 0, 0, 0.6);
+  --shadow-glow-primary: 0 0 24px rgba(127, 163, 131, 0.25);
+  --shadow-glow-gold: 0 0 24px rgba(199, 164, 104, 0.25);
+}
+
+[dir="rtl"] {
+  --font-sans-value: "Cairo Variable", "Segoe UI", Tahoma, sans-serif;
+  --font-heading-value: "Cairo Variable", "Segoe UI", Tahoma, sans-serif;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--color-cream);
+  color: var(--color-ink);
+}
+
+/* Printed pages (receipts) always use light, ink-on-paper colors, regardless
+   of the active theme — dark-mode text would otherwise print illegibly. */
+@media print {
+  :root,
+  .dark {
+    --cream: #ffffff;
+    --card: #ffffff;
+    --foreground: #241b14;
+    --border: rgba(36, 27, 20, 0.12);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@theme inline {
+  --font-sans: var(--font-sans-value);
+  --font-heading: var(--font-heading-value);
+  --font-label: var(--font-sans-value);
+  --font-serif: "Playfair Display Variable", Georgia, serif;
+
+  --color-forest: var(--forest);
+  --color-forest-deep: var(--forest-deep);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
+  --color-cream: var(--cream);
+  --color-sage: var(--sage);
+  --color-ink: var(--foreground);
+  --color-success: var(--success);
+
+  --shadow-resting: var(--shadow-resting);
+  --shadow-raised: var(--shadow-raised);
+  --shadow-glow-primary: var(--shadow-glow-primary);
+  --shadow-glow-gold: var(--shadow-glow-gold);
+
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+@layer components {
+  .glass-surface {
+    background: var(--card);
+    border: 1px solid color-mix(in srgb, var(--foreground) 5%, transparent);
+    box-shadow: var(--shadow-resting);
+  }
+  .dark .glass-surface {
+    border-color: color-mix(in srgb, var(--foreground) 8%, transparent);
+    box-shadow: var(--shadow-resting), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  }
+  .glass-surface-strong {
+    background: color-mix(in srgb, var(--card) 85%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+  }
+}

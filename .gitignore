@@ -1,0 +1,15 @@
+node_modules/
+dist/
+build/
+server/src/generated/
+server/uploads/
+.env
+server/.env
+client/.env
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.claude/

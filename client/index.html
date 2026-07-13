@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>La Aura POS</title>
+    <script>
+      (function () {
+        var storedTheme = localStorage.getItem("la-aura-theme");
+        var theme = storedTheme === "light" || storedTheme === "dark" ? storedTheme : "light";
+        if (theme === "dark") document.documentElement.classList.add("dark");
+
+        var storedLang = localStorage.getItem("la-aura-lang");
+        var lang = storedLang === "ar" ? "ar" : "en";
+        document.documentElement.lang = lang;
+        document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

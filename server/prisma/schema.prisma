@@ -1,0 +1,248 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  CASHIER
+  REPORTER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  MOBILE_MONEY
+  OTHER
+}
+
+enum InventoryChangeReason {
+  SALE
+  RESTOCK
+  ADJUSTMENT
+  RETURN
+}
+
+enum SaleStatus {
+  COMPLETED
+  VOIDED
+  REFUNDED
+}
+
+model User {
+  id           String     @id @default(uuid())
+  name         String
+  email        String     @unique
+  passwordHash String
+  role         Role       @default(CASHIER)
+  status       UserStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  salesAsCashier   Sale[]             @relation("CashierSales")
+  voidedSales      Sale[]             @relation("SaleVoidedBy")
+  inventoryUpdates InventoryHistory[] @relation("InventoryUpdatedBy")
+  auditLogs        AuditLog[]
+  refreshTokens    RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id                  String    @id @default(uuid())
+  tokenHash           String    @unique
+  userId              String
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt           DateTime
+  revokedAt           DateTime?
+  replacedByTokenHash String?
+  createdAt           DateTime  @default(now())
+  createdByIp         String?
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  nameAr    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id         String    @id @default(uuid())
+  sku        String    @unique
+  barcode    String?   @unique
+  name       String
+  nameAr     String?
+  price      Decimal   @db.Decimal(10, 2)
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+  stock      Int       @default(0)
+  image      String?
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  saleItems        SaleItem[]
+  inventoryHistory InventoryHistory[]
+  variants         ProductVariant[]
+  extras           ProductExtra[]
+
+  @@index([categoryId])
+  @@map("products")
+}
+
+model ProductVariant {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String
+  nameAr    String?
+  price     Decimal  @db.Decimal(10, 2)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  saleItems SaleItem[]
+
+  @@unique([productId, name])
+  @@map("product_variants")
+}
+
+model ProductExtra {
+  id        String   @id @default(uuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name      String
+  nameAr    String?
+  price     Decimal  @db.Decimal(10, 2)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  saleItemExtras SaleItemExtra[]
+
+  @@unique([productId, name])
+  @@map("product_extras")
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  name      String
+  phone     String?
+  email     String?
+  address   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sales Sale[]
+
+  @@map("customers")
+}
+
+model Sale {
+  id            String        @id @default(uuid())
+  reference     String        @unique
+  customerId    String?
+  customer      Customer?     @relation(fields: [customerId], references: [id])
+  cashierId     String
+  cashier       User          @relation("CashierSales", fields: [cashierId], references: [id])
+  date          DateTime      @default(now())
+  subtotal      Decimal       @db.Decimal(10, 2)
+  tax           Decimal       @db.Decimal(10, 2) @default(0)
+  discount      Decimal       @db.Decimal(10, 2) @default(0)
+  grandTotal    Decimal       @db.Decimal(10, 2)
+  paymentMethod PaymentMethod
+  status        SaleStatus    @default(COMPLETED)
+  voidedAt      DateTime?
+  voidReason    String?
+  voidedById    String?
+  voidedBy      User?         @relation("SaleVoidedBy", fields: [voidedById], references: [id])
+
+  items SaleItem[]
+
+  @@index([cashierId])
+  @@index([customerId])
+  @@index([date])
+  @@map("sales")
+}
+
+model SaleItem {
+  id          String          @id @default(uuid())
+  saleId      String
+  sale        Sale            @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product         @relation(fields: [productId], references: [id])
+  variantId   String?
+  variant     ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  variantName String?
+  quantity    Int
+  price       Decimal         @db.Decimal(10, 2)
+
+  extras SaleItemExtra[]
+
+  @@index([saleId])
+  @@index([productId])
+  @@index([variantId])
+  @@map("sale_items")
+}
+
+model SaleItemExtra {
+  id         String        @id @default(uuid())
+  saleItemId String
+  saleItem   SaleItem      @relation(fields: [saleItemId], references: [id], onDelete: Cascade)
+  extraId    String?
+  extra      ProductExtra? @relation(fields: [extraId], references: [id], onDelete: SetNull)
+  name       String
+  price      Decimal       @db.Decimal(10, 2)
+
+  @@index([saleItemId])
+  @@map("sale_item_extras")
+}
+
+model InventoryHistory {
+  id          String                @id @default(uuid())
+  productId   String
+  product     Product               @relation(fields: [productId], references: [id])
+  oldStock    Int
+  newStock    Int
+  reason      InventoryChangeReason
+  updatedById String?
+  updatedBy   User?                 @relation("InventoryUpdatedBy", fields: [updatedById], references: [id])
+  createdAt   DateTime              @default(now())
+
+  @@index([productId])
+  @@map("inventory_history")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  action    String
+  date      DateTime @default(now())
+  ipAddress String?
+  metadata  Json?
+
+  @@index([userId])
+  @@index([date])
+  @@map("audit_logs")
+}
