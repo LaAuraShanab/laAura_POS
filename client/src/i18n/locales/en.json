@@ -143,6 +143,9 @@
     "noCustomersFound": "No customers found.",
     "discount": "Discount",
     "tax": "Tax",
+    "note": "Note",
+    "noteOptional": "(optional)",
+    "notePlaceholder": "Add a note for this sale...",
     "subtotal": "Subtotal",
     "total": "Total",
     "completeSale": "Complete Sale",
@@ -155,7 +158,17 @@
     "paymentCash": "Cash",
     "paymentCard": "Card",
     "paymentMobileMoney": "Mobile Money",
-    "paymentOther": "Other"
+    "paymentOther": "Other",
+    "holdSale": "Hold Sale",
+    "heldSalesTitle": "Held Sales",
+    "heldSalesCount_one": "{{count}} held",
+    "heldSalesCount_other": "{{count}} held",
+    "noHeldSales": "No held sales",
+    "resumeSale": "Resume",
+    "discardHeldSale": "Discard held sale",
+    "discardHeldConfirmTitle": "Discard held sale?",
+    "discardHeldConfirmMessage": "This will permanently remove this held sale and its items. This can't be undone.",
+    "finishCurrentSaleFirst": "Finish or hold your current sale before resuming another"
   },
   "products": {
     "catalog": "Catalog",
@@ -395,6 +408,9 @@
     "customerRemoved": "Customer removed",
     "userCreated": "User created",
     "userUpdated": "User updated",
-    "userDeactivated": "User deactivated"
+    "userDeactivated": "User deactivated",
+    "saleHeld": "Sale held",
+    "saleResumed": "Sale resumed",
+    "saleDiscarded": "Held sale discarded"
   }
 }

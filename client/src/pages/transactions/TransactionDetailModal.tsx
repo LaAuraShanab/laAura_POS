@@ -106,6 +106,13 @@ export function TransactionDetailModal({ sale: initialSale, onClose }: { sale: S
           <PaymentMethodBadge method={sale.paymentMethod} />
         </div>
 
+        {sale.note && (
+          <div className="rounded-2xl bg-sage/6 p-3 text-sm">
+            <p className="text-[11px] font-medium tracking-wide text-ink/50 uppercase">{t("pos.note")}</p>
+            <p className="mt-1 whitespace-pre-wrap text-ink/80">{sale.note}</p>
+          </div>
+        )}
+
         <div>
           <p className="mb-2 text-xs font-medium tracking-wide text-ink/50 uppercase">
             {t("transactions.itemsCount", { count: sale.items.length })}

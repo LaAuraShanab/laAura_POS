@@ -155,6 +155,9 @@
     "noCustomersFound": "لم يتم العثور على عملاء.",
     "discount": "الخصم",
     "tax": "الضريبة",
+    "note": "ملاحظة",
+    "noteOptional": "(اختياري)",
+    "notePlaceholder": "أضف ملاحظة لهذا البيع...",
     "subtotal": "المجموع الفرعي",
     "total": "الإجمالي",
     "completeSale": "إتمام البيع",
@@ -167,7 +170,21 @@
     "paymentCash": "نقدًا",
     "paymentCard": "بطاقة",
     "paymentMobileMoney": "محفظة إلكترونية",
-    "paymentOther": "أخرى"
+    "paymentOther": "أخرى",
+    "holdSale": "تعليق البيع",
+    "heldSalesTitle": "المبيعات المعلقة",
+    "heldSalesCount_zero": "لا مبيعات معلقة",
+    "heldSalesCount_one": "معلّق واحد",
+    "heldSalesCount_two": "معلّقان",
+    "heldSalesCount_few": "{{count}} معلّقات",
+    "heldSalesCount_many": "{{count}} معلّقًا",
+    "heldSalesCount_other": "{{count}} معلّق",
+    "noHeldSales": "لا توجد مبيعات معلقة",
+    "resumeSale": "استئناف",
+    "discardHeldSale": "حذف البيع المعلق",
+    "discardHeldConfirmTitle": "حذف البيع المعلق؟",
+    "discardHeldConfirmMessage": "سيؤدي هذا إلى حذف هذا البيع المعلق وعناصره نهائيًا. لا يمكن التراجع عن هذا الإجراء.",
+    "finishCurrentSaleFirst": "أكمل البيع الحالي أو علّقه قبل استئناف بيع آخر"
   },
   "products": {
     "catalog": "الكتالوج",
@@ -427,6 +444,9 @@
     "customerRemoved": "أُزيل العميل",
     "userCreated": "أُنشئ المستخدم",
     "userUpdated": "حُدّث المستخدم",
-    "userDeactivated": "عُطّل المستخدم"
+    "userDeactivated": "عُطّل المستخدم",
+    "saleHeld": "عُلّق البيع",
+    "saleResumed": "استُؤنف البيع",
+    "saleDiscarded": "حُذف البيع المعلق"
   }
 }

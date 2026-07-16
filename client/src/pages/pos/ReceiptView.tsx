@@ -74,6 +74,13 @@ export function ReceiptView({ sale, onNewSale }: ReceiptViewProps) {
         {t("pos.paidVia", { method: t(PAYMENT_METHOD_KEY[sale.paymentMethod] ?? "pos.paymentOther") })}
       </div>
 
+      {sale.note && (
+        <div className="mt-3 rounded-xl bg-sage/8 px-3 py-2 text-xs text-ink/70 print:border print:border-dashed print:border-ink/30 print:bg-transparent">
+          <p className="font-medium text-ink/50">{t("pos.note")}</p>
+          <p className="mt-0.5 whitespace-pre-wrap">{sale.note}</p>
+        </div>
+      )}
+
       <Button className="mt-6 w-full print:hidden" onClick={onNewSale}>
         {t("pos.newSale")}
       </Button>

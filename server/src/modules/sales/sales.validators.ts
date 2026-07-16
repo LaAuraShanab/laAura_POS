@@ -29,6 +29,7 @@ export const createSaleValidators = [
   body("items.*.quantity").isInt({ min: 1 }).withMessage("Each item needs a quantity of at least 1"),
   body("discount").optional().isFloat({ min: 0 }),
   body("tax").optional().isFloat({ min: 0 }),
+  body("note").optional({ values: "falsy" }).isString().trim().isLength({ max: 500 }),
   body("paymentMethod")
     .isIn(paymentMethods)
     .withMessage(`Payment method must be one of: ${paymentMethods.join(", ")}`),

@@ -4,9 +4,9 @@ import { PaymentMethod, SaleStatus } from "../../generated/prisma/client";
 import * as salesService from "./sales.service";
 
 export async function create(req: Request, res: Response) {
-  const { customerId, items, discount, tax, paymentMethod } = req.body;
+  const { customerId, items, discount, tax, note, paymentMethod } = req.body;
   const sale = await salesService.createSale(
-    { customerId, items, discount: discount ?? 0, tax: tax ?? 0, paymentMethod },
+    { customerId, items, discount: discount ?? 0, tax: tax ?? 0, note, paymentMethod },
     req.user!.id,
     req
   );

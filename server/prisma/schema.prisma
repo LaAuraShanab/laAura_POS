@@ -172,6 +172,7 @@ model Sale {
   discount      Decimal       @db.Decimal(10, 2) @default(0)
   grandTotal    Decimal       @db.Decimal(10, 2)
   paymentMethod PaymentMethod
+  note          String?
   status        SaleStatus    @default(COMPLETED)
   voidedAt      DateTime?
   voidReason    String?

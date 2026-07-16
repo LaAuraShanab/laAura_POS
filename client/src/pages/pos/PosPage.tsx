@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { UserCircle, ChevronRight } from "lucide-react";
+import { UserCircle, ChevronRight, PauseCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { ProductGrid } from "./ProductGrid";
@@ -8,7 +8,11 @@ import type { CartLine } from "./Cart";
 import { PaymentPanel } from "./PaymentPanel";
 import { ReceiptView } from "./ReceiptView";
 import { CustomerPickerModal } from "./CustomerPickerModal";
+import { HeldSalesModal } from "./HeldSalesModal";
+import { Button } from "../../components/ui/Button";
+import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { useCreateSale } from "../../hooks/useSales";
+import { useHeldSales } from "../../hooks/useHeldSales";
 import type { Product, ProductVariant } from "../../types/product";
 import type { Customer } from "../../types/customer";
 import type { PaymentMethod, Sale } from "../../types/sale";
@@ -27,12 +31,16 @@ export function PosPage() {
   const [lines, setLines] = useState<CartLine[]>([]);
   const [discount, setDiscount] = useState(0);
   const [tax, setTax] = useState(0);
+  const [note, setNote] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("CASH");
   const [completedSale, setCompletedSale] = useState<Sale | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [showCustomerPicker, setShowCustomerPicker] = useState(false);
+  const [showHeldSales, setShowHeldSales] = useState(false);
+  const [pendingDiscardId, setPendingDiscardId] = useState<string | null>(null);
   const createSale = useCreateSale();
+  const { heldSales, holdSale, discardSale, takeSale } = useHeldSales();
 
   const subtotal = useMemo(
     () => lines.reduce((sum, line) => sum + lineUnitPrice(line) * line.quantity, 0),
@@ -72,10 +80,43 @@ export function PosPage() {
     setLines([]);
     setDiscount(0);
     setTax(0);
+    setNote("");
     setPaymentMethod("CASH");
     setCompletedSale(null);
     setError(null);
     setCustomer(null);
+  }
+
+  function handleHoldSale() {
+    if (lines.length === 0) return;
+    holdSale({ lines, discount, tax, note, paymentMethod, customer });
+    toast.success(t("toast.saleHeld"));
+    resetForNewSale();
+  }
+
+  function handleResumeSale(id: string) {
+    if (lines.length > 0) {
+      toast.error(t("pos.finishCurrentSaleFirst"));
+      return;
+    }
+    const sale = takeSale(id);
+    if (!sale) return;
+    setLines(sale.lines);
+    setDiscount(sale.discount);
+    setTax(sale.tax);
+    setNote(sale.note);
+    setPaymentMethod(sale.paymentMethod);
+    setCustomer(sale.customer);
+    setError(null);
+    setShowHeldSales(false);
+    toast.success(t("toast.saleResumed"));
+  }
+
+  function confirmDiscardHeldSale() {
+    if (!pendingDiscardId) return;
+    discardSale(pendingDiscardId);
+    setPendingDiscardId(null);
+    toast.success(t("toast.saleDiscarded"));
   }
 
   async function handleCompleteSale() {
@@ -91,6 +132,7 @@ export function PosPage() {
         })),
         discount,
         tax,
+        note: note.trim() || undefined,
         paymentMethod,
       });
       setCompletedSale(sale);
@@ -110,7 +152,16 @@ export function PosPage() {
         <ProductGrid onSelect={addProduct} />
       </div>
       <div className="rounded-3xl glass-surface p-6 shadow-resting">
-        <h2 className="mb-3 text-sm font-semibold text-ink">{t("pos.cart")}</h2>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-ink">{t("pos.cart")}</h2>
+          <button
+            onClick={() => setShowHeldSales(true)}
+            className="flex items-center gap-1.5 rounded-full bg-sage/8 px-3 py-1 text-xs font-medium text-ink/70 transition-colors hover:bg-sage/15"
+          >
+            <PauseCircle className="h-3.5 w-3.5 text-forest" aria-hidden="true" />
+            {t("pos.heldSalesCount", { count: heldSales.length })}
+          </button>
+        </div>
 
         <button
           onClick={() => setShowCustomerPicker(true)}
@@ -131,12 +182,20 @@ export function PosPage() {
           tax={tax}
           onDiscountChange={setDiscount}
           onTaxChange={setTax}
+          note={note}
+          onNoteChange={setNote}
           paymentMethod={paymentMethod}
           onPaymentMethodChange={setPaymentMethod}
           onSubmit={handleCompleteSale}
           disabled={lines.length === 0}
           isSubmitting={createSale.isPending}
         />
+        {lines.length > 0 && (
+          <Button variant="secondary" className="mt-2 w-full" onClick={handleHoldSale}>
+            <PauseCircle className="me-1.5 h-3.5 w-3.5" aria-hidden="true" />
+            {t("pos.holdSale")}
+          </Button>
+        )}
       </div>
 
       {showCustomerPicker && (
@@ -146,6 +205,25 @@ export function PosPage() {
             setShowCustomerPicker(false);
           }}
           onClose={() => setShowCustomerPicker(false)}
+        />
+      )}
+
+      {showHeldSales && (
+        <HeldSalesModal
+          heldSales={heldSales}
+          onResume={handleResumeSale}
+          onDiscard={(id) => setPendingDiscardId(id)}
+          onClose={() => setShowHeldSales(false)}
+        />
+      )}
+
+      {pendingDiscardId && (
+        <ConfirmDialog
+          title={t("pos.discardHeldConfirmTitle")}
+          message={t("pos.discardHeldConfirmMessage")}
+          confirmLabel={t("common.delete")}
+          onConfirm={confirmDiscardHeldSale}
+          onCancel={() => setPendingDiscardId(null)}
         />
       )}
     </div>
