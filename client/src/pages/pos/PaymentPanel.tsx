@@ -11,6 +11,8 @@ interface PaymentPanelProps {
   tax: number;
   onDiscountChange: (value: number) => void;
   onTaxChange: (value: number) => void;
+  note: string;
+  onNoteChange: (value: string) => void;
   paymentMethod: PaymentMethod;
   onPaymentMethodChange: (method: PaymentMethod) => void;
   onSubmit: () => void;
@@ -32,6 +34,8 @@ export function PaymentPanel({
   tax,
   onDiscountChange,
   onTaxChange,
+  note,
+  onNoteChange,
   paymentMethod,
   onPaymentMethodChange,
   onSubmit,
@@ -84,6 +88,22 @@ export function PaymentPanel({
           ))}
         </SelectContent>
       </Select>
+
+      <div>
+        <Label htmlFor="payment-note" className="text-xs text-ink/55">
+          {t("pos.note")}{" "}
+          <span className="font-normal text-ink/40">{t("pos.noteOptional")}</span>
+        </Label>
+        <textarea
+          id="payment-note"
+          value={note}
+          onChange={(e) => onNoteChange(e.target.value)}
+          rows={2}
+          maxLength={500}
+          placeholder={t("pos.notePlaceholder")}
+          className="w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+        />
+      </div>
 
       <div className="space-y-1 text-sm">
         <div className="flex justify-between text-ink/70">

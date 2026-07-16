@@ -34,6 +34,7 @@ export interface Sale {
   discount: string;
   grandTotal: string;
   paymentMethod: PaymentMethod;
+  note: string | null;
   status: SaleStatus;
   voidedAt: string | null;
   voidReason: string | null;
@@ -48,6 +49,7 @@ export interface CreateSaleInput {
   items: Array<{ productId: string; variantId?: string; extraIds?: string[]; quantity: number }>;
   discount: number;
   tax: number;
+  note?: string;
   paymentMethod: PaymentMethod;
 }
 

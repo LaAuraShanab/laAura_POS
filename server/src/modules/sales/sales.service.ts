@@ -23,6 +23,7 @@ interface CreateSaleInput {
   items: SaleItemInput[];
   discount: number;
   tax: number;
+  note?: string;
   paymentMethod: PaymentMethod;
 }
 
@@ -121,6 +122,7 @@ export async function createSale(input: CreateSaleInput, cashierId: string, req:
         tax,
         grandTotal,
         paymentMethod: input.paymentMethod,
+        note: input.note?.trim() || null,
         items: { create: lineData },
       },
       include: saleInclude,
