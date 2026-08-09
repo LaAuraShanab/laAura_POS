@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { prisma } from "../../lib/prisma";
 import { ConflictError, NotFoundError, ValidationError } from "../../errors/AppError";
 import { recordAudit } from "../../middleware/auditLog";
-import { PaymentMethod, Prisma, SaleStatus } from "../../generated/prisma/client";
+import { PaymentMethod, Prisma, SaleStatus, SalePaymentStatus } from "../../generated/prisma/client";
 import { Request } from "express";
 
 function generateSaleReference(): string {
@@ -25,6 +25,9 @@ interface CreateSaleInput {
   tax: number;
   note?: string;
   paymentMethod: PaymentMethod;
+  // When true the sale is placed on the customer's account (unpaid) instead of
+  // being settled at checkout. Requires a customerId — no anonymous credit.
+  isCredit?: boolean;
 }
 
 const saleInclude = {
@@ -37,6 +40,9 @@ const saleInclude = {
 export async function createSale(input: CreateSaleInput, cashierId: string, req: Request) {
   if (input.items.length === 0) {
     throw new ValidationError([{ field: "items", message: "Sale must contain at least one item" }]);
+  }
+  if (input.isCredit && !input.customerId) {
+    throw new ValidationError([{ field: "customerId", message: "A customer is required for an on-account sale" }]);
   }
 
   return prisma.$transaction(async (tx) => {
@@ -123,6 +129,8 @@ export async function createSale(input: CreateSaleInput, cashierId: string, req:
         grandTotal,
         paymentMethod: input.paymentMethod,
         note: input.note?.trim() || null,
+        paymentStatus: input.isCredit ? "UNPAID" : "PAID",
+        amountPaid: input.isCredit ? 0 : grandTotal,
         items: { create: lineData },
       },
       include: saleInclude,
@@ -151,6 +159,7 @@ export async function createSale(input: CreateSaleInput, cashierId: string, req:
         saleId: sale.id,
         reference: sale.reference,
         grandTotal,
+        ...(input.isCredit && { onAccount: true }),
         ...(sale.customer && { customerId: sale.customer.id, customerName: sale.customer.name }),
       },
       client: tx,
@@ -164,6 +173,7 @@ interface ListSalesFilters {
   search?: string;
   paymentMethod?: PaymentMethod;
   status?: SaleStatus;
+  paymentStatus?: SalePaymentStatus;
   from?: string;
   to?: string;
   page?: number;
@@ -177,6 +187,7 @@ export async function listSales(filters: ListSalesFilters) {
   const where: Prisma.SaleWhereInput = {
     paymentMethod: filters.paymentMethod,
     status: filters.status,
+    paymentStatus: filters.paymentStatus,
     date: {
       gte: filters.from ? new Date(filters.from) : undefined,
       lte: filters.to ? new Date(filters.to) : undefined,

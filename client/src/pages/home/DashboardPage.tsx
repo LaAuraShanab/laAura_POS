@@ -4,11 +4,13 @@ import { useTranslation } from "react-i18next";
 import { useDashboard } from "../../hooks/useDashboard";
 import { Skeleton } from "../../components/ui/Skeleton";
 import { RangeToggle } from "./RangeToggle";
+import { PeriodNav } from "./PeriodNav";
+import { PointSalesModal } from "./PointSalesModal";
 import { SummaryCard } from "./SummaryCard";
 import { TrendChartCard } from "./TrendChartCard";
 import { LowStockCard } from "./LowStockCard";
 import { RecentSalesCard } from "./RecentSalesCard";
-import type { DashboardRange } from "../../types/dashboard";
+import type { DashboardRange, DashboardSeriesPoint } from "../../types/dashboard";
 
 const containerVariants = {
   hidden: {},
@@ -22,14 +24,32 @@ const itemVariants = {
 export function DashboardPage() {
   const { t } = useTranslation();
   const [range, setRange] = useState<DashboardRange>("month");
-  const { data: summary, isLoading, isError } = useDashboard(range);
+  const [offset, setOffset] = useState(0);
+  const { data: summary, isLoading, isError } = useDashboard(range, offset);
+  const [activePoint, setActivePoint] = useState<DashboardSeriesPoint | null>(null);
   const reduceMotion = useReducedMotion();
+
+  // Reset to the current period whenever the range granularity changes.
+  function handleRangeChange(next: DashboardRange) {
+    setRange(next);
+    setOffset(0);
+  }
 
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <h1 className="max-w-md text-3xl font-heading font-medium text-ink">{t("dashboard.greeting")}</h1>
-        <RangeToggle value={range} onChange={setRange} />
+        <div className="flex flex-wrap items-center gap-3">
+          {summary && (
+            <PeriodNav
+              range={range}
+              offset={offset}
+              onOffsetChange={setOffset}
+              periodStart={summary.period.start}
+            />
+          )}
+          <RangeToggle value={range} onChange={handleRangeChange} />
+        </div>
       </div>
 
       {isLoading && (
@@ -91,7 +111,7 @@ export function DashboardPage() {
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
             <motion.div variants={reduceMotion ? undefined : itemVariants} className="lg:col-span-2">
-              <TrendChartCard summary={summary} />
+              <TrendChartCard summary={summary} onPointClick={setActivePoint} />
             </motion.div>
             <motion.div variants={reduceMotion ? undefined : itemVariants} className="space-y-4">
               <LowStockCard items={summary.lowStock} />
@@ -99,6 +119,10 @@ export function DashboardPage() {
             </motion.div>
           </div>
         </motion.div>
+      )}
+
+      {activePoint && summary && (
+        <PointSalesModal point={activePoint} bucketUnit={summary.bucketUnit} onClose={() => setActivePoint(null)} />
       )}
     </div>
   );

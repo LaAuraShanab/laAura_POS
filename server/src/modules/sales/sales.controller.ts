@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
 import { ok } from "../../utils/response";
-import { PaymentMethod, SaleStatus } from "../../generated/prisma/client";
+import { PaymentMethod, SaleStatus, SalePaymentStatus } from "../../generated/prisma/client";
 import * as salesService from "./sales.service";
 
 export async function create(req: Request, res: Response) {
-  const { customerId, items, discount, tax, note, paymentMethod } = req.body;
+  const { customerId, items, discount, tax, note, paymentMethod, isCredit } = req.body;
   const sale = await salesService.createSale(
-    { customerId, items, discount: discount ?? 0, tax: tax ?? 0, note, paymentMethod },
+    { customerId, items, discount: discount ?? 0, tax: tax ?? 0, note, paymentMethod, isCredit: !!isCredit },
     req.user!.id,
     req
   );
@@ -14,10 +14,11 @@ export async function create(req: Request, res: Response) {
 }
 
 export async function list(req: Request, res: Response) {
-  const { search, paymentMethod, status, from, to, page, pageSize } = req.query as {
+  const { search, paymentMethod, status, paymentStatus, from, to, page, pageSize } = req.query as {
     search?: string;
     paymentMethod?: PaymentMethod;
     status?: SaleStatus;
+    paymentStatus?: SalePaymentStatus;
     from?: string;
     to?: string;
     page?: string;
@@ -29,6 +30,7 @@ export async function list(req: Request, res: Response) {
       search,
       paymentMethod,
       status,
+      paymentStatus,
       from,
       to,
       page: page !== undefined ? Number(page) : undefined,

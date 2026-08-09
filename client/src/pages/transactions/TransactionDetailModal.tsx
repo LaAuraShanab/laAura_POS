@@ -8,7 +8,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useVoidSale } from "../../hooks/useSales";
 import { formatCurrency, formatDateTime } from "../../lib/format";
 import { PaymentMethodBadge } from "./paymentMethodMeta";
-import { StatusBadge } from "./saleStatusMeta";
+import { StatusBadge, PaymentStatusBadge } from "./saleStatusMeta";
 import { useLanguage } from "../../context/LanguageContext";
 import { localizedName } from "../../lib/localize";
 import { ApiError } from "../../types/api";
@@ -25,7 +25,15 @@ function initialsOf(name: string) {
     .toUpperCase();
 }
 
-export function TransactionDetailModal({ sale: initialSale, onClose }: { sale: Sale; onClose: () => void }) {
+export function TransactionDetailModal({
+  sale: initialSale,
+  onClose,
+  readOnly = false,
+}: {
+  sale: Sale;
+  onClose: () => void;
+  readOnly?: boolean;
+}) {
   const { t } = useTranslation();
   const { language } = useLanguage();
   const { user } = useAuth();
@@ -35,7 +43,10 @@ export function TransactionDetailModal({ sale: initialSale, onClose }: { sale: S
   const [error, setError] = useState<string | null>(null);
   const voidSale = useVoidSale();
 
-  const canReverse = !!user && ["ADMIN", "MANAGER"].includes(user.role) && sale.status === "COMPLETED";
+  // readOnly (e.g. when viewing an invoice from a customer's account) hides the
+  // void/refund actions — this view is only for inspecting the sale's contents.
+  const canReverse =
+    !readOnly && !!user && ["ADMIN", "MANAGER"].includes(user.role) && sale.status === "COMPLETED";
 
   function startAction(action: Exclude<PendingAction, null>) {
     setPendingAction(action);
@@ -179,6 +190,24 @@ export function TransactionDetailModal({ sale: initialSale, onClose }: { sale: S
             <span>{t("transactions.grandTotal")}</span>
             <span className="tabular-nums">{formatCurrency(Number(sale.grandTotal))}</span>
           </div>
+          {sale.status === "COMPLETED" && sale.paymentStatus !== "PAID" && (
+            <div className="mt-1 space-y-1 border-t border-ink/10 pt-2">
+              <div className="flex items-center justify-between">
+                <span className="text-ink/70">{t("transactions.paymentStatusLabel")}</span>
+                <PaymentStatusBadge status={sale.paymentStatus} />
+              </div>
+              <div className="flex justify-between text-ink/70">
+                <span>{t("transactions.amountPaid")}</span>
+                <span className="tabular-nums">{formatCurrency(Number(sale.amountPaid))}</span>
+              </div>
+              <div className="flex justify-between font-medium text-amber-600 dark:text-amber-400">
+                <span>{t("transactions.amountRemaining")}</span>
+                <span className="tabular-nums">
+                  {formatCurrency(Number(sale.grandTotal) - Number(sale.amountPaid))}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
 
         {canReverse && pendingAction === null && (

@@ -3,13 +3,13 @@ import type { DashboardRange, DashboardSummary } from "../types/dashboard";
 import type { ReportingAnalytics } from "../types/reporting";
 
 export const reportsApi = {
-  getDashboard: (range: DashboardRange) =>
-    unwrap<DashboardSummary>(axiosClient.get("/reports/dashboard", { params: { range } })),
-  getAnalytics: (range: DashboardRange) =>
-    unwrap<ReportingAnalytics>(axiosClient.get("/reports/analytics", { params: { range } })),
-  exportPdf: async (range: DashboardRange) => {
+  getDashboard: (range: DashboardRange, offset = 0) =>
+    unwrap<DashboardSummary>(axiosClient.get("/reports/dashboard", { params: { range, offset } })),
+  getAnalytics: (range: DashboardRange, offset = 0) =>
+    unwrap<ReportingAnalytics>(axiosClient.get("/reports/analytics", { params: { range, offset } })),
+  exportPdf: async (range: DashboardRange, offset = 0) => {
     const response = await axiosClient.get("/reports/export", {
-      params: { range },
+      params: { range, offset },
       responseType: "blob",
     });
     return response.data as Blob;

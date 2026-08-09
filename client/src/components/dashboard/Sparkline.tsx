@@ -1,9 +1,9 @@
 import { useId } from "react";
 import { useTranslation } from "react-i18next";
-import type { DashboardSeriesPoint } from "../../types/dashboard";
 
 interface SparklineProps {
-  data: DashboardSeriesPoint[];
+  // Only the numeric values matter for the sparkline shape.
+  data: { value: number }[];
   height?: number;
 }
 

@@ -12,43 +12,62 @@ interface RangeBounds {
   previousStart: Date;
   previousEnd: Date;
   bucketUnit: "hour" | "day";
+  isCurrent: boolean;
 }
 
 function utcMidnight(date: Date): Date {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 }
 
-export function getRangeBounds(range: DashboardRange, now: Date): RangeBounds {
+// `offset` counts whole periods into the past: 0 = the live/current period,
+// 1 = the immediately-previous one, etc. Past periods are always complete
+// windows (a whole day/week/month); only the current period is partial (ends now).
+export function getRangeBounds(range: DashboardRange, now: Date, offset = 0): RangeBounds {
+  const isCurrent = offset === 0;
+
   if (range === "today") {
-    const currentStart = utcMidnight(now);
+    const currentStart = new Date(utcMidnight(now).getTime() - offset * DAY_MS);
+    const currentEnd = isCurrent ? now : new Date(currentStart.getTime() + DAY_MS - 1);
     return {
       currentStart,
-      currentEnd: now,
+      currentEnd,
       previousStart: new Date(currentStart.getTime() - DAY_MS),
       previousEnd: currentStart,
       bucketUnit: "hour",
+      isCurrent,
     };
   }
 
   if (range === "week") {
-    const currentStart = new Date(utcMidnight(now).getTime() - 6 * DAY_MS);
+    const currentStart = new Date(utcMidnight(now).getTime() - (6 + offset * 7) * DAY_MS);
+    const currentEnd = isCurrent ? now : new Date(currentStart.getTime() + 7 * DAY_MS - 1);
     return {
       currentStart,
-      currentEnd: now,
+      currentEnd,
       previousStart: new Date(currentStart.getTime() - 7 * DAY_MS),
       previousEnd: currentStart,
       bucketUnit: "day",
+      isCurrent,
     };
   }
 
-  const currentStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-  const elapsedDays = now.getUTCDate();
-  const previousStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
-  const endOfPrevMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 0, 23, 59, 59, 999));
-  const candidateEnd = new Date(previousStart.getTime() + elapsedDays * DAY_MS);
-  const previousEnd = candidateEnd < endOfPrevMonth ? candidateEnd : endOfPrevMonth;
+  const currentStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - offset, 1));
+  const monthEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - offset + 1, 0, 23, 59, 59, 999));
+  const currentEnd = isCurrent ? now : monthEnd;
+  const previousStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - offset - 1, 1));
+  const endOfPrevMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - offset, 0, 23, 59, 59, 999));
 
-  return { currentStart, currentEnd: now, previousStart, previousEnd, bucketUnit: "day" };
+  let previousEnd: Date;
+  if (isCurrent) {
+    // compare like-for-like: same elapsed slice of the previous month
+    const candidateEnd = new Date(previousStart.getTime() + now.getUTCDate() * DAY_MS);
+    previousEnd = candidateEnd < endOfPrevMonth ? candidateEnd : endOfPrevMonth;
+  } else {
+    // a completed past month compares against the full month before it
+    previousEnd = endOfPrevMonth;
+  }
+
+  return { currentStart, currentEnd, previousStart, previousEnd, bucketUnit: "day", isCurrent };
 }
 
 function dayKey(date: Date): string {
@@ -59,19 +78,26 @@ function dayLabel(date: Date): string {
   return `${MONTH_ABBR[date.getUTCMonth()]} ${date.getUTCDate()}`;
 }
 
-function buildBucketPlan(range: DashboardRange, bounds: RangeBounds): { key: string; label: string }[] {
+function buildBucketPlan(
+  range: DashboardRange,
+  bounds: RangeBounds,
+  now: Date
+): { key: string; label: string; start: Date }[] {
   if (range === "today") {
-    const currentHour = bounds.currentEnd.getUTCHours();
-    return Array.from({ length: currentHour + 1 }, (_, hour) => ({
+    // current day stops at the current hour; a past day shows all 24 hours
+    const hours = bounds.isCurrent ? now.getUTCHours() + 1 : 24;
+    return Array.from({ length: hours }, (_, hour) => ({
       key: String(hour),
       label: `${String(hour).padStart(2, "0")}:00`,
+      start: new Date(bounds.currentStart.getTime() + hour * 60 * 60 * 1000),
     }));
   }
 
-  const days = range === "week" ? 7 : bounds.currentEnd.getUTCDate();
+  // week = 7 days; month = elapsed days (current) or the full month (past)
+  const days = range === "week" ? 7 : bounds.isCurrent ? now.getUTCDate() : bounds.currentEnd.getUTCDate();
   return Array.from({ length: days }, (_, i) => {
     const date = new Date(bounds.currentStart.getTime() + i * DAY_MS);
-    return { key: dayKey(date), label: dayLabel(date) };
+    return { key: dayKey(date), label: dayLabel(date), start: date };
   });
 }
 
@@ -79,9 +105,9 @@ function round2(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-export async function getDashboardSummary(range: DashboardRange) {
+export async function getDashboardSummary(range: DashboardRange, offset = 0) {
   const now = new Date();
-  const bounds = getRangeBounds(range, now);
+  const bounds = getRangeBounds(range, now, offset);
 
   const [currentSales, previousSales, lowStock, recentSales] = await Promise.all([
     prisma.sale.findMany({
@@ -119,19 +145,25 @@ export async function getDashboardSummary(range: DashboardRange) {
   const avgSaleValue = totalTransactions === 0 ? 0 : round2(periodTotal / totalTransactions);
   const avgItemsPerSale = totalTransactions === 0 ? 0 : round2(itemsSold / totalTransactions);
 
-  const bucketPlan = buildBucketPlan(range, bounds);
+  const bucketPlan = buildBucketPlan(range, bounds, now);
   const bucketTotals = new Map<string, number>();
+  const bucketCounts = new Map<string, number>();
   for (const sale of currentSales) {
     const key = bounds.bucketUnit === "hour" ? String(sale.date.getUTCHours()) : dayKey(sale.date);
     bucketTotals.set(key, (bucketTotals.get(key) ?? 0) + Number(sale.grandTotal));
+    bucketCounts.set(key, (bucketCounts.get(key) ?? 0) + 1);
   }
   const series = bucketPlan.map((bucket) => ({
     label: bucket.label,
     value: round2(bucketTotals.get(bucket.key) ?? 0),
+    count: bucketCounts.get(bucket.key) ?? 0,
+    start: bucket.start.toISOString(),
   }));
 
   return {
     range,
+    offset,
+    bucketUnit: bounds.bucketUnit,
     period: { start: bounds.currentStart.toISOString(), end: bounds.currentEnd.toISOString() },
     totals: { periodTotal: round2(periodTotal), previousTotal: round2(previousTotal), deltaPct },
     averages: { avgSaleValue, avgItemsPerSale },
@@ -154,6 +186,7 @@ const TOP_N = 5;
 
 export interface ReportingAnalytics {
   range: DashboardRange;
+  offset: number;
   period: { start: string; end: string };
   bestSellers: { productId: string; name: string; nameAr: string | null; sku: string; units: number; revenue: number }[];
   worstSellers: { productId: string; name: string; nameAr: string | null; sku: string; units: number; stock: number }[];
@@ -165,9 +198,9 @@ export interface ReportingAnalytics {
   };
 }
 
-export async function getReportingAnalytics(range: DashboardRange): Promise<ReportingAnalytics> {
+export async function getReportingAnalytics(range: DashboardRange, offset = 0): Promise<ReportingAnalytics> {
   const now = new Date();
-  const bounds = getRangeBounds(range, now);
+  const bounds = getRangeBounds(range, now, offset);
 
   const [currentSales, activeProducts] = await Promise.all([
     prisma.sale.findMany({
@@ -287,6 +320,7 @@ export async function getReportingAnalytics(range: DashboardRange): Promise<Repo
 
   return {
     range,
+    offset,
     period: { start: bounds.currentStart.toISOString(), end: bounds.currentEnd.toISOString() },
     bestSellers,
     worstSellers,

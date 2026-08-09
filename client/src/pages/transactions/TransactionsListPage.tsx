@@ -8,16 +8,22 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../../components/ui/table";
 import { TransactionDetailModal } from "./TransactionDetailModal";
 import { PaymentMethodBadge, PAYMENT_METHOD_META } from "./paymentMethodMeta";
-import { StatusBadge } from "./saleStatusMeta";
+import { StatusBadge, PaymentStatusBadge } from "./saleStatusMeta";
 import { formatCurrency, formatDateTime } from "../../lib/format";
 import { useLanguage } from "../../context/LanguageContext";
 import { localizedName } from "../../lib/localize";
-import type { PaymentMethod, Sale, SaleStatus } from "../../types/sale";
+import type { PaymentMethod, Sale, SalePaymentStatus, SaleStatus } from "../../types/sale";
 
 const STATUS_LABEL_KEY: Record<SaleStatus, string> = {
   COMPLETED: "transactions.statusCompleted",
   VOIDED: "transactions.statusVoided",
   REFUNDED: "transactions.statusRefunded",
+};
+
+const PAYMENT_STATUS_LABEL_KEY: Record<SalePaymentStatus, string> = {
+  PAID: "transactions.paymentPaid",
+  UNPAID: "transactions.paymentUnpaid",
+  PARTIALLY_PAID: "transactions.paymentPartial",
 };
 
 const PAGE_SIZE = 10;
@@ -48,6 +54,7 @@ export function TransactionsListPage() {
   const [search, setSearch] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "all">("all");
   const [status, setStatus] = useState<SaleStatus | "all">("all");
+  const [paymentStatus, setPaymentStatus] = useState<SalePaymentStatus | "all">("all");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [page, setPage] = useState(1);
@@ -65,6 +72,7 @@ export function TransactionsListPage() {
     search: search || undefined,
     paymentMethod: paymentMethod === "all" ? undefined : paymentMethod,
     status: status === "all" ? undefined : status,
+    paymentStatus: paymentStatus === "all" ? undefined : paymentStatus,
     from: from ? `${from}T00:00:00.000Z` : undefined,
     to: to ? `${to}T23:59:59.999Z` : undefined,
     page,
@@ -124,6 +132,25 @@ export function TransactionsListPage() {
             {(Object.keys(STATUS_LABEL_KEY) as SaleStatus[]).map((s) => (
               <SelectItem key={s} value={s}>
                 {t(STATUS_LABEL_KEY[s])}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={paymentStatus}
+          onValueChange={(value) => {
+            setPaymentStatus(value as SalePaymentStatus | "all");
+            setPage(1);
+          }}
+        >
+          <SelectTrigger className="w-40">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{t("transactions.allPaymentStatuses")}</SelectItem>
+            {(Object.keys(PAYMENT_STATUS_LABEL_KEY) as SalePaymentStatus[]).map((s) => (
+              <SelectItem key={s} value={s}>
+                {t(PAYMENT_STATUS_LABEL_KEY[s])}
               </SelectItem>
             ))}
           </SelectContent>
@@ -227,7 +254,10 @@ export function TransactionsListPage() {
                     <PaymentMethodBadge method={sale.paymentMethod} />
                   </TableCell>
                   <TableCell className="px-4 py-2.5">
-                    <StatusBadge status={sale.status} />
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <StatusBadge status={sale.status} />
+                      {sale.status === "COMPLETED" && <PaymentStatusBadge status={sale.paymentStatus} />}
+                    </div>
                   </TableCell>
                   <TableCell
                     className={`px-4 py-2.5 text-end tabular-nums ${

@@ -9,11 +9,14 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
+        // Fixed deep-forest gradient CTA with white text in BOTH themes — a
+        // deliberate brand choice (like the dark sidebar), so it never depends on
+        // the theme-inverted --primary and always keeps strong contrast.
         default:
-          "relative isolate overflow-hidden bg-primary text-primary-foreground after:pointer-events-none after:absolute after:inset-0 after:rounded-[inherit] after:bg-white after:opacity-0 after:transition-opacity after:duration-150 after:ease-[var(--ease-standard)] hover:bg-primary/80 active:after:opacity-[0.16]",
+          "relative isolate overflow-hidden !text-white bg-[#2f4632] bg-gradient-to-br from-[#3a5a41] to-[#233620] shadow-resting after:pointer-events-none after:absolute after:inset-0 after:rounded-[inherit] after:bg-white after:opacity-0 after:transition-opacity after:duration-150 after:ease-[var(--ease-standard)] hover:brightness-[1.08] hover:shadow-glow-primary active:after:opacity-[0.16]",
         // alias of `default` — kept so existing call sites using variant="primary" need no changes
         primary:
-          "relative isolate overflow-hidden bg-primary text-primary-foreground after:pointer-events-none after:absolute after:inset-0 after:rounded-[inherit] after:bg-white after:opacity-0 after:transition-opacity after:duration-150 after:ease-[var(--ease-standard)] hover:bg-primary/80 active:after:opacity-[0.16]",
+          "relative isolate overflow-hidden !text-white bg-[#2f4632] bg-gradient-to-br from-[#3a5a41] to-[#233620] shadow-resting after:pointer-events-none after:absolute after:inset-0 after:rounded-[inherit] after:bg-white after:opacity-0 after:transition-opacity after:duration-150 after:ease-[var(--ease-standard)] hover:brightness-[1.08] hover:shadow-glow-primary active:after:opacity-[0.16]",
         outline:
           "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
         secondary:

@@ -2,11 +2,13 @@ import { body, param, query } from "express-validator";
 
 const paymentMethods = ["CASH", "CARD", "MOBILE_MONEY", "OTHER"];
 const saleStatuses = ["COMPLETED", "VOIDED", "REFUNDED"];
+const paymentStatuses = ["PAID", "UNPAID", "PARTIALLY_PAID"];
 
 export const listSalesValidators = [
   query("search").optional().isString().trim(),
   query("paymentMethod").optional().isIn(paymentMethods),
   query("status").optional().isIn(saleStatuses),
+  query("paymentStatus").optional().isIn(paymentStatuses),
   query("from").optional().isISO8601(),
   query("to").optional().isISO8601(),
   query("page").optional().isInt({ min: 1 }).toInt(),
@@ -30,6 +32,7 @@ export const createSaleValidators = [
   body("discount").optional().isFloat({ min: 0 }),
   body("tax").optional().isFloat({ min: 0 }),
   body("note").optional({ values: "falsy" }).isString().trim().isLength({ max: 500 }),
+  body("isCredit").optional().isBoolean(),
   body("paymentMethod")
     .isIn(paymentMethods)
     .withMessage(`Payment method must be one of: ${paymentMethods.join(", ")}`),

@@ -44,3 +44,18 @@ export async function deactivate(req: Request, res: Response) {
   });
   ok(res, customer);
 }
+
+export async function getAccount(req: Request, res: Response) {
+  ok(res, await customersService.getCustomerAccount(req.params.id as string));
+}
+
+export async function recordPayment(req: Request, res: Response) {
+  const { amount, method, note, allocations } = req.body;
+  const payment = await customersService.recordPayment(
+    req.params.id as string,
+    { amount, method, note, allocations },
+    req.user!.id,
+    req
+  );
+  ok(res, payment, 201);
+}

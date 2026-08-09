@@ -60,9 +60,9 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <>
-      <div className="mb-4 flex items-center gap-2 border-b border-border px-1.5 pb-4">
-        <img src="/logo.png" alt="La Aura" className="h-8 w-8 rounded-full object-cover shadow-glow-primary" />
-        <span className="font-serif text-base italic text-forest">La Aura</span>
+      <div className="mb-4 flex items-center gap-2.5 border-b border-white/10 px-1.5 pb-4">
+        <img src="/logo.png" alt="La Aura" className="h-8 w-8 rounded-full object-cover shadow-glow-gold" />
+        <span className="font-serif text-lg italic text-[#f4efe3]">La Aura</span>
       </div>
 
       <nav className="flex flex-1 flex-col gap-0.5">
@@ -73,7 +73,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
             return (
               <span
                 key={item.labelKey}
-                className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-ink/30"
+                className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-white/25"
                 aria-disabled="true"
               >
                 <Icon className="h-4 w-4" aria-hidden="true" />
@@ -89,15 +89,15 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               className={({ isActive }) =>
                 `group flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm transition-colors duration-150 ${
                   isActive
-                    ? "border-s-2 border-forest bg-gradient-to-r from-forest/15 to-transparent rtl:bg-gradient-to-l text-forest"
-                    : "text-ink/65 hover:bg-sage/5 hover:text-ink"
+                    ? "bg-[#c7a468]/20 text-white shadow-[inset_0_0_0_1px_rgba(199,164,104,0.4)] [&_svg]:text-[#e2c98a]"
+                    : "text-white/65 hover:bg-white/10 hover:text-white"
                 }`
               }
             >
               <Icon className="h-4 w-4" aria-hidden="true" />
               <span className="flex-1">{label}</span>
               <Leaf
-                className="h-3.5 w-3.5 -translate-x-1.5 -rotate-45 text-gold opacity-0 transition-all duration-200 ease-[var(--ease-standard)] group-hover:translate-x-0 group-hover:rotate-0 group-hover:opacity-100 rtl:translate-x-1.5 rtl:group-hover:translate-x-0"
+                className="h-3.5 w-3.5 -translate-x-1.5 -rotate-45 text-[#e2c98a] opacity-0 transition-all duration-200 ease-[var(--ease-standard)] group-hover:translate-x-0 group-hover:rotate-0 group-hover:opacity-100 rtl:translate-x-1.5 rtl:group-hover:translate-x-0"
                 aria-hidden="true"
               />
             </NavLink>
@@ -105,11 +105,11 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         })}
       </nav>
 
-      <div className="mb-2 flex items-center justify-between rounded-full bg-sage/6 p-1">
+      <div className="mb-2 flex items-center justify-between rounded-full bg-white/8 p-1">
         <button
           onClick={() => setLanguage("en")}
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-full py-1.5 text-xs font-medium transition-colors ${
-            language === "en" ? "bg-forest text-primary-foreground shadow-resting" : "text-ink/50 hover:text-ink"
+            language === "en" ? "bg-[#c7a468] text-[#14291b] shadow-resting" : "text-white/55 hover:text-white"
           }`}
           aria-label="Use English"
           aria-pressed={language === "en"}
@@ -120,7 +120,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <button
           onClick={() => setLanguage("ar")}
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-full py-1.5 text-xs font-medium transition-colors ${
-            language === "ar" ? "bg-forest text-primary-foreground shadow-resting" : "text-ink/50 hover:text-ink"
+            language === "ar" ? "bg-[#c7a468] text-[#14291b] shadow-resting" : "text-white/55 hover:text-white"
           }`}
           aria-label="استخدام العربية"
           aria-pressed={language === "ar"}
@@ -130,11 +130,11 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         </button>
       </div>
 
-      <div className="mb-2 flex items-center justify-between rounded-full bg-sage/6 p-1">
+      <div className="mb-2 flex items-center justify-between rounded-full bg-white/8 p-1">
         <button
           onClick={() => theme !== "light" && toggleTheme()}
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-full py-1.5 text-xs font-medium transition-colors ${
-            theme === "light" ? "bg-forest text-primary-foreground shadow-resting" : "text-ink/50 hover:text-ink"
+            theme === "light" ? "bg-[#c7a468] text-[#14291b] shadow-resting" : "text-white/55 hover:text-white"
           }`}
           aria-label="Use light theme"
           aria-pressed={theme === "light"}
@@ -145,7 +145,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         <button
           onClick={() => theme !== "dark" && toggleTheme()}
           className={`flex flex-1 items-center justify-center gap-1.5 rounded-full py-1.5 text-xs font-medium transition-colors ${
-            theme === "dark" ? "bg-forest text-primary-foreground shadow-resting" : "text-ink/50 hover:text-ink"
+            theme === "dark" ? "bg-[#c7a468] text-[#14291b] shadow-resting" : "text-white/55 hover:text-white"
           }`}
           aria-label="Use dark theme"
           aria-pressed={theme === "dark"}
@@ -155,13 +155,13 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         </button>
       </div>
 
-      <div className="flex items-center gap-2 rounded-2xl glass-surface-strong border border-forest/20 p-3">
-        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-forest text-[11px] font-medium text-primary-foreground">
+      <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/6 p-3">
+        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[#c7a468] text-[11px] font-medium text-[#14291b]">
           {initials}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-xs font-medium text-ink">{user?.name}</p>
-          <p className="text-[10px] font-medium tracking-wide text-forest capitalize">
+          <p className="truncate text-xs font-medium text-white">{user?.name}</p>
+          <p className="text-[10px] font-medium tracking-wide text-[#e2c98a] capitalize">
             {user?.role.toLowerCase()}
           </p>
         </div>
@@ -169,7 +169,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       <Button
         variant="ghost"
         onClick={() => logout()}
-        className="mt-2 w-full !justify-center !text-ink/50 text-xs hover:!bg-destructive/10 hover:!text-destructive"
+        className="mt-2 w-full !justify-center text-xs !text-white/55 hover:!bg-destructive/20 hover:!text-destructive"
       >
         {t("nav.logout")}
       </Button>
@@ -179,7 +179,7 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
 export function Sidebar() {
   return (
-    <aside className="hidden w-56 flex-shrink-0 flex-col glass-surface border-e border-border px-3.5 py-5 text-ink md:sticky md:top-0 md:flex md:h-screen md:overflow-y-auto print:hidden">
+    <aside className="sidebar-surface hidden w-56 flex-shrink-0 flex-col border-e border-white/8 px-3.5 py-5 text-[#eef2e6] md:sticky md:top-0 md:flex md:h-screen md:overflow-y-auto print:hidden">
       <SidebarContent />
     </aside>
   );

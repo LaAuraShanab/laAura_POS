@@ -6,6 +6,7 @@ import {
   createCustomerValidators,
   idParamValidator,
   listCustomersValidators,
+  recordPaymentValidators,
   updateCustomerValidators,
 } from "./customers.validators";
 import * as customersController from "./customers.controller";
@@ -28,12 +29,26 @@ customersRouter.get(
   validate,
   asyncHandler(customersController.getById)
 );
+customersRouter.get(
+  "/:id/account",
+  requireRole("ADMIN", "MANAGER", "CASHIER"),
+  idParamValidator,
+  validate,
+  asyncHandler(customersController.getAccount)
+);
 customersRouter.post(
   "/",
   requireRole("ADMIN", "MANAGER", "CASHIER"),
   createCustomerValidators,
   validate,
   asyncHandler(customersController.create)
+);
+customersRouter.post(
+  "/:id/payments",
+  requireRole("ADMIN", "MANAGER", "CASHIER"),
+  recordPaymentValidators,
+  validate,
+  asyncHandler(customersController.recordPayment)
 );
 customersRouter.put(
   "/:id",

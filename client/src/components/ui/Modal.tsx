@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { X } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
@@ -14,9 +14,12 @@ interface ModalProps {
   title: string;
   onClose: () => void;
   children: ReactNode;
+  // Forwarded to Radix so a caller can keep this modal open when interaction
+  // happens outside it (e.g. while a nested modal is stacked on top).
+  onInteractOutside?: ComponentProps<typeof DialogContent>["onInteractOutside"];
 }
 
-export function Modal({ title, onClose, children }: ModalProps) {
+export function Modal({ title, onClose, children, onInteractOutside }: ModalProps) {
   const reduceMotion = useReducedMotion();
 
   return (
@@ -28,6 +31,7 @@ export function Modal({ title, onClose, children }: ModalProps) {
         />
         <DialogContent
           showCloseButton={false}
+          onInteractOutside={onInteractOutside}
           className="top-1/2 left-1/2 max-h-[90vh] w-full max-w-2xl sm:max-w-2xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border-none bg-transparent p-0 shadow-none ring-0"
         >
           <motion.div

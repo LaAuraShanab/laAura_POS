@@ -33,6 +33,7 @@ export function PosPage() {
   const [tax, setTax] = useState(0);
   const [note, setNote] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("CASH");
+  const [isCredit, setIsCredit] = useState(false);
   const [completedSale, setCompletedSale] = useState<Sale | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [customer, setCustomer] = useState<Customer | null>(null);
@@ -46,6 +47,7 @@ export function PosPage() {
     () => lines.reduce((sum, line) => sum + lineUnitPrice(line) * line.quantity, 0),
     [lines]
   );
+  const itemCount = useMemo(() => lines.reduce((sum, line) => sum + line.quantity, 0), [lines]);
 
   function addProduct(product: Product, variant?: ProductVariant, extraIds: string[] = []) {
     const extras = product.extras.filter((extra) => extraIds.includes(extra.id));
@@ -82,6 +84,7 @@ export function PosPage() {
     setTax(0);
     setNote("");
     setPaymentMethod("CASH");
+    setIsCredit(false);
     setCompletedSale(null);
     setError(null);
     setCustomer(null);
@@ -89,7 +92,7 @@ export function PosPage() {
 
   function handleHoldSale() {
     if (lines.length === 0) return;
-    holdSale({ lines, discount, tax, note, paymentMethod, customer });
+    holdSale({ lines, discount, tax, note, paymentMethod, isCredit, customer });
     toast.success(t("toast.saleHeld"));
     resetForNewSale();
   }
@@ -106,6 +109,7 @@ export function PosPage() {
     setTax(sale.tax);
     setNote(sale.note);
     setPaymentMethod(sale.paymentMethod);
+    setIsCredit(sale.isCredit);
     setCustomer(sale.customer);
     setError(null);
     setShowHeldSales(false);
@@ -134,9 +138,14 @@ export function PosPage() {
         tax,
         note: note.trim() || undefined,
         paymentMethod,
+        isCredit: isCredit && !!customer,
       });
       setCompletedSale(sale);
-      toast.success(t("toast.saleCompleted", { reference: sale.reference }));
+      toast.success(
+        isCredit && customer
+          ? t("toast.saleOnAccount", { name: customer.name })
+          : t("toast.saleCompleted", { reference: sale.reference })
+      );
     } catch (err) {
       setError(err instanceof ApiError ? err.message : t("pos.couldNotCompleteSale"));
     }
@@ -151,9 +160,16 @@ export function PosPage() {
       <div className="lg:col-span-2">
         <ProductGrid onSelect={addProduct} />
       </div>
-      <div className="rounded-3xl glass-surface p-6 shadow-resting">
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-ink">{t("pos.cart")}</h2>
+      <div className="flex flex-col rounded-3xl glass-surface p-6 shadow-resting lg:sticky lg:top-6 lg:h-[calc(100vh-3rem)]">
+        <div className="mb-3 flex flex-shrink-0 items-center justify-between">
+          <div className="flex items-baseline gap-2">
+            <h2 className="font-serif text-xl italic text-ink">{t("pos.cart")}</h2>
+            {itemCount > 0 && (
+              <span className="rounded-full bg-forest/12 px-2 py-0.5 text-[11px] font-medium text-forest">
+                {t("pos.itemCount", { count: itemCount })}
+              </span>
+            )}
+          </div>
           <button
             onClick={() => setShowHeldSales(true)}
             className="flex items-center gap-1.5 rounded-full bg-sage/8 px-3 py-1 text-xs font-medium text-ink/70 transition-colors hover:bg-sage/15"
@@ -165,7 +181,7 @@ export function PosPage() {
 
         <button
           onClick={() => setShowCustomerPicker(true)}
-          className="mb-3 flex w-full items-center justify-between rounded-xl bg-sage/8 px-3 py-2.5 text-start transition-colors hover:bg-sage/15"
+          className="mb-3 flex w-full flex-shrink-0 items-center justify-between rounded-xl border border-ink/8 bg-sage/8 px-3 py-2.5 text-start transition-colors hover:bg-sage/15"
         >
           <span className="flex items-center gap-2 text-sm text-ink">
             <UserCircle className="h-4 w-4 text-forest" aria-hidden="true" />
@@ -174,28 +190,37 @@ export function PosPage() {
           <ChevronRight className="h-3.5 w-3.5 text-ink/40 rtl:rotate-180" aria-hidden="true" />
         </button>
 
-        <Cart lines={lines} onIncrement={increment} onDecrement={decrement} onRemove={remove} />
-        {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
-        <PaymentPanel
-          subtotal={subtotal}
-          discount={discount}
-          tax={tax}
-          onDiscountChange={setDiscount}
-          onTaxChange={setTax}
-          note={note}
-          onNoteChange={setNote}
-          paymentMethod={paymentMethod}
-          onPaymentMethodChange={setPaymentMethod}
-          onSubmit={handleCompleteSale}
-          disabled={lines.length === 0}
-          isSubmitting={createSale.isPending}
-        />
-        {lines.length > 0 && (
-          <Button variant="secondary" className="mt-2 w-full" onClick={handleHoldSale}>
-            <PauseCircle className="me-1.5 h-3.5 w-3.5" aria-hidden="true" />
-            {t("pos.holdSale")}
-          </Button>
-        )}
+        {/* Only the item list scrolls; header, customer, totals and CTA stay put. */}
+        <div className="-mx-2 min-h-0 flex-1 overflow-y-auto px-2 lg:min-h-[96px]">
+          <Cart lines={lines} onIncrement={increment} onDecrement={decrement} onRemove={remove} />
+        </div>
+
+        {error && <p className="mt-2 flex-shrink-0 text-sm text-destructive">{error}</p>}
+        <div className="flex-shrink-0">
+          <PaymentPanel
+            subtotal={subtotal}
+            discount={discount}
+            tax={tax}
+            onDiscountChange={setDiscount}
+            onTaxChange={setTax}
+            note={note}
+            onNoteChange={setNote}
+            paymentMethod={paymentMethod}
+            onPaymentMethodChange={setPaymentMethod}
+            isCredit={isCredit}
+            onIsCreditChange={setIsCredit}
+            creditAvailable={!!customer}
+            onSubmit={handleCompleteSale}
+            disabled={lines.length === 0}
+            isSubmitting={createSale.isPending}
+          />
+          {lines.length > 0 && (
+            <Button variant="secondary" className="mt-2 w-full" onClick={handleHoldSale}>
+              <PauseCircle className="me-1.5 h-3.5 w-3.5" aria-hidden="true" />
+              {t("pos.holdSale")}
+            </Button>
+          )}
+        </div>
       </div>
 
       {showCustomerPicker && (

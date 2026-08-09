@@ -5,13 +5,15 @@ import { useDashboard } from "../../hooks/useDashboard";
 import { useReportingAnalytics } from "../../hooks/useReportingAnalytics";
 import { Skeleton } from "../../components/ui/Skeleton";
 import { RangeToggle } from "../home/RangeToggle";
+import { PeriodNav } from "../home/PeriodNav";
+import { PointSalesModal } from "../home/PointSalesModal";
 import { TrendChartCard } from "../home/TrendChartCard";
 import { BestSellersCard } from "./BestSellersCard";
 import { WorstSellersCard } from "./WorstSellersCard";
 import { CashierPerformanceCard } from "./CashierPerformanceCard";
 import { InsightsCard } from "./InsightsCard";
 import { ExportPdfButton } from "./ExportPdfButton";
-import type { DashboardRange } from "../../types/dashboard";
+import type { DashboardRange, DashboardSeriesPoint } from "../../types/dashboard";
 
 const containerVariants = {
   hidden: {},
@@ -25,12 +27,19 @@ const itemVariants = {
 export function ReportingPage() {
   const { t } = useTranslation();
   const [range, setRange] = useState<DashboardRange>("month");
-  const { data: summary, isLoading: isSummaryLoading, isError: isSummaryError } = useDashboard(range);
-  const { data: analytics, isLoading: isAnalyticsLoading, isError: isAnalyticsError } = useReportingAnalytics(range);
+  const [offset, setOffset] = useState(0);
+  const { data: summary, isLoading: isSummaryLoading, isError: isSummaryError } = useDashboard(range, offset);
+  const { data: analytics, isLoading: isAnalyticsLoading, isError: isAnalyticsError } = useReportingAnalytics(range, offset);
+  const [activePoint, setActivePoint] = useState<DashboardSeriesPoint | null>(null);
   const reduceMotion = useReducedMotion();
 
   const isLoading = isSummaryLoading || isAnalyticsLoading;
   const isError = isSummaryError || isAnalyticsError;
+
+  function handleRangeChange(next: DashboardRange) {
+    setRange(next);
+    setOffset(0);
+  }
 
   return (
     <div>
@@ -39,9 +48,12 @@ export function ReportingPage() {
           <h1 className="text-3xl font-heading font-medium text-ink">{t("reporting.title")}</h1>
           <p className="mt-1 text-sm text-ink/60">{t("reporting.subtitle")}</p>
         </div>
-        <div className="flex items-center gap-3">
-          <RangeToggle value={range} onChange={setRange} />
-          <ExportPdfButton range={range} />
+        <div className="flex flex-wrap items-center gap-3">
+          {summary && (
+            <PeriodNav range={range} offset={offset} onOffsetChange={setOffset} periodStart={summary.period.start} />
+          )}
+          <RangeToggle value={range} onChange={handleRangeChange} />
+          <ExportPdfButton range={range} offset={offset} />
         </div>
       </div>
 
@@ -77,7 +89,7 @@ export function ReportingPage() {
         >
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
             <motion.div variants={reduceMotion ? undefined : itemVariants} className="lg:col-span-2">
-              <TrendChartCard summary={summary} />
+              <TrendChartCard summary={summary} onPointClick={setActivePoint} />
             </motion.div>
             <motion.div variants={reduceMotion ? undefined : itemVariants}>
               <WorstSellersCard items={analytics.worstSellers} />
@@ -97,6 +109,10 @@ export function ReportingPage() {
             <InsightsCard insights={analytics.insights} />
           </motion.div>
         </motion.div>
+      )}
+
+      {activePoint && summary && (
+        <PointSalesModal point={activePoint} bucketUnit={summary.bucketUnit} onClose={() => setActivePoint(null)} />
       )}
     </div>
   );

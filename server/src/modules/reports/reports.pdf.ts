@@ -8,7 +8,8 @@ const INK = "#17261c";
 const MUTED = "#7c847e";
 
 function formatCurrency(value: number): string {
-  return `$${value.toFixed(2)}`;
+  // "ILS" text (not the ₪ glyph) — pdfkit's built-in Helvetica font can't render ₪.
+  return `ILS ${value.toFixed(2)}`;
 }
 
 function sectionTitle(doc: PDFKit.PDFDocument, title: string) {
