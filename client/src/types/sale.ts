@@ -2,6 +2,7 @@ import type { Product, ProductVariant } from "./product";
 
 export type PaymentMethod = "CASH" | "CARD" | "MOBILE_MONEY" | "OTHER";
 export type SaleStatus = "COMPLETED" | "VOIDED" | "REFUNDED";
+export type SalePaymentStatus = "PAID" | "UNPAID" | "PARTIALLY_PAID";
 
 export interface SaleItemExtra {
   id: string;
@@ -36,6 +37,8 @@ export interface Sale {
   paymentMethod: PaymentMethod;
   note: string | null;
   status: SaleStatus;
+  paymentStatus: SalePaymentStatus;
+  amountPaid: string;
   voidedAt: string | null;
   voidReason: string | null;
   voidedBy: { id: string; name: string } | null;
@@ -51,12 +54,14 @@ export interface CreateSaleInput {
   tax: number;
   note?: string;
   paymentMethod: PaymentMethod;
+  isCredit?: boolean;
 }
 
 export interface SaleListFilters {
   search?: string;
   paymentMethod?: PaymentMethod;
   status?: SaleStatus;
+  paymentStatus?: SalePaymentStatus;
   from?: string;
   to?: string;
   page?: number;

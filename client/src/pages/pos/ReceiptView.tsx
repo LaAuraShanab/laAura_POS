@@ -4,6 +4,7 @@ import { Button } from "../../components/ui/Button";
 import { Card } from "../../components/ui/card";
 import { useLanguage } from "../../context/LanguageContext";
 import { localizedName } from "../../lib/localize";
+import { formatCurrency } from "../../lib/format";
 
 interface ReceiptViewProps {
   sale: Sale;
@@ -40,7 +41,7 @@ export function ReceiptView({ sale, onNewSale }: ReceiptViewProps) {
                 )}{" "}
                 × {item.quantity}
               </span>
-              <span>${(Number(item.price) * item.quantity).toFixed(2)}</span>
+              <span>{formatCurrency(Number(item.price) * item.quantity)}</span>
             </div>
             {item.extras.length > 0 && (
               <p className="text-xs text-ink/45">
@@ -54,21 +55,21 @@ export function ReceiptView({ sale, onNewSale }: ReceiptViewProps) {
       <div className="mt-3 space-y-1 text-sm">
         <div className="flex justify-between text-ink/70">
           <span>{t("pos.subtotal")}</span>
-          <span>${Number(sale.subtotal).toFixed(2)}</span>
+          <span>{formatCurrency(Number(sale.subtotal))}</span>
         </div>
         <div className="flex justify-between text-ink/70">
           <span>{t("pos.discount")}</span>
-          <span>-${Number(sale.discount).toFixed(2)}</span>
+          <span>-{formatCurrency(Number(sale.discount))}</span>
         </div>
         <div className="flex justify-between text-ink/70">
           <span>{t("pos.tax")}</span>
-          <span>${Number(sale.tax).toFixed(2)}</span>
+          <span>{formatCurrency(Number(sale.tax))}</span>
         </div>
       </div>
 
       <div className="mt-3 flex items-center justify-between rounded-2xl bg-gold-soft/25 px-4 py-3">
         <span className="text-base font-bold text-ink">{t("pos.total")}</span>
-        <span className="text-lg font-bold text-ink">${Number(sale.grandTotal).toFixed(2)}</span>
+        <span className="text-lg font-bold text-ink">{formatCurrency(Number(sale.grandTotal))}</span>
       </div>
       <div className="mt-2 text-center text-xs text-ink/40">
         {t("pos.paidVia", { method: t(PAYMENT_METHOD_KEY[sale.paymentMethod] ?? "pos.paymentOther") })}

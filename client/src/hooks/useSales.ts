@@ -9,6 +9,14 @@ export function useSalesQuery(filters: SaleListFilters = {}) {
   });
 }
 
+export function useSaleQuery(id: string | null) {
+  return useQuery({
+    queryKey: ["sale", id],
+    queryFn: () => salesApi.getById(id as string),
+    enabled: !!id,
+  });
+}
+
 export function useCreateSale() {
   const queryClient = useQueryClient();
   return useMutation({

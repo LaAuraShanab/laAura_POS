@@ -62,7 +62,7 @@ export function ActionBadge({ action }: { action: string }) {
 
 function formatCurrency(value: unknown): string | null {
   const num = Number(value);
-  return Number.isFinite(num) ? `$${num.toFixed(2)}` : null;
+  return Number.isFinite(num) ? `₪${num.toFixed(2)}` : null;
 }
 
 export function metadataSummary(log: AuditLog): string {

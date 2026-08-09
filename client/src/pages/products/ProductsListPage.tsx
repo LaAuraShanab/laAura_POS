@@ -15,6 +15,7 @@ import { ProductDetailModal } from "./ProductDetailModal";
 import { CategoriesPanel } from "./CategoriesPanel";
 import { useLanguage } from "../../context/LanguageContext";
 import { localizedName } from "../../lib/localize";
+import { formatCurrency } from "../../lib/format";
 import type { Product } from "../../types/product";
 
 type Tab = "products" | "categories";
@@ -304,8 +305,8 @@ export function ProductsListPage() {
                       </TableCell>
                       <TableCell className="px-4 py-2.5 text-end text-ink">
                         {product.variants.length > 0
-                          ? t("pos.fromPrice", { price: `$${Math.min(...product.variants.map((v) => Number(v.price))).toFixed(2)}` })
-                          : `$${Number(product.price).toFixed(2)}`}
+                          ? t("pos.fromPrice", { price: formatCurrency(Math.min(...product.variants.map((v) => Number(v.price)))) })
+                          : formatCurrency(Number(product.price))}
                       </TableCell>
                       <TableCell className="px-4 py-2.5">
                         <StockBadge stock={product.stock} />

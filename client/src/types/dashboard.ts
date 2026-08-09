@@ -1,8 +1,11 @@
 export type DashboardRange = "today" | "week" | "month";
+export type BucketUnit = "hour" | "day";
 
 export interface DashboardSeriesPoint {
   label: string;
   value: number;
+  count: number;
+  start: string;
 }
 
 export interface DashboardLowStockItem {
@@ -27,6 +30,8 @@ export interface DashboardRecentSale {
 // for money fields, since the server already does the arithmetic.
 export interface DashboardSummary {
   range: DashboardRange;
+  offset: number;
+  bucketUnit: BucketUnit;
   period: { start: string; end: string };
   totals: { periodTotal: number; previousTotal: number; deltaPct: number | null };
   averages: { avgSaleValue: number; avgItemsPerSale: number };

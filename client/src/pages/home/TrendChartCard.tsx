@@ -3,9 +3,15 @@ import { useTranslation } from "react-i18next";
 import { TrendChart } from "../../components/dashboard/TrendChart";
 import { Card } from "../../components/ui/card";
 import { formatCurrency } from "../../lib/format";
-import type { DashboardSummary } from "../../types/dashboard";
+import type { DashboardSeriesPoint, DashboardSummary } from "../../types/dashboard";
 
-export function TrendChartCard({ summary }: { summary: DashboardSummary }) {
+export function TrendChartCard({
+  summary,
+  onPointClick,
+}: {
+  summary: DashboardSummary;
+  onPointClick?: (point: DashboardSeriesPoint) => void;
+}) {
   const { t } = useTranslation();
   const { activity, averages } = summary;
 
@@ -18,7 +24,7 @@ export function TrendChartCard({ summary }: { summary: DashboardSummary }) {
         <p className="text-xs font-medium tracking-[0.08em] text-ink/50 uppercase">{t("dashboard.salesTrend")}</p>
       </div>
 
-      <TrendChart data={summary.series} />
+      <TrendChart data={summary.series} onPointClick={onPointClick} />
 
       <div className="mt-6 grid grid-cols-3 gap-6 border-t border-ink/8 pt-5">
         <div>

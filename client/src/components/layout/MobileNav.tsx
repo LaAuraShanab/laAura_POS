@@ -31,7 +31,7 @@ export function MobileNav() {
           <DialogOverlay className="bg-forest-deep/70 backdrop-blur-none" />
           <DialogPrimitive.Content
             data-slot="dialog-content"
-            className="fixed inset-y-0 start-0 z-50 flex h-full w-72 flex-col glass-surface-strong px-3.5 py-5 text-ink shadow-raised outline-none duration-200 data-closed:animate-out data-closed:slide-out-to-left rtl:data-closed:slide-out-to-right data-open:animate-in data-open:slide-in-from-left rtl:data-open:slide-in-from-right"
+            className="sidebar-surface fixed inset-y-0 start-0 z-50 flex h-full w-72 flex-col px-3.5 py-5 text-[#eef2e6] shadow-raised outline-none duration-200 data-closed:animate-out data-closed:slide-out-to-left rtl:data-closed:slide-out-to-right data-open:animate-in data-open:slide-in-from-left rtl:data-open:slide-in-from-right"
           >
             <DialogTitle className="sr-only">{t("common.navigationMenu")}</DialogTitle>
             <SidebarContent onNavigate={() => setOpen(false)} />

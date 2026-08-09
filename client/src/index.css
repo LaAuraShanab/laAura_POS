@@ -249,6 +249,21 @@ body {
   html {
     @apply font-sans;
   }
+
+  /* Number inputs: drop the clunky native spin buttons (which render as an
+     ugly OS-themed box, worst of all in dark mode + RTL) so every numeric
+     field matches the app's clean rounded input. Numeric glyphs use
+     tabular figures so digits line up. Applies project-wide. */
+  input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+    font-variant-numeric: tabular-nums;
+  }
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
 }
 
 @layer components {
@@ -266,5 +281,14 @@ body {
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--border);
+  }
+  /* Deep-forest navigation surface — intentionally dark in BOTH themes (like the
+     LoginPage showcase panel). Nav contents use fixed light-on-dark utilities. */
+  .sidebar-surface {
+    background: linear-gradient(180deg, #1c3b29 0%, #14291b 100%);
+    box-shadow: var(--shadow-raised);
+  }
+  .dark .sidebar-surface {
+    background: linear-gradient(180deg, #16301f 0%, #0f2116 100%);
   }
 }

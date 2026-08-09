@@ -51,6 +51,7 @@ export interface DiscountInsight {
 
 export interface ReportingAnalytics {
   range: DashboardRange;
+  offset: number;
   period: { start: string; end: string };
   bestSellers: BestSellerItem[];
   worstSellers: WorstSellerItem[];

@@ -11,6 +11,7 @@ export interface HeldSale {
   tax: number;
   note: string;
   paymentMethod: PaymentMethod;
+  isCredit: boolean;
   customer: Customer | null;
 }
 

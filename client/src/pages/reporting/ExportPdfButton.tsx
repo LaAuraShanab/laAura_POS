@@ -5,18 +5,18 @@ import { Button } from "../../components/ui/Button";
 import { reportsApi } from "../../api/reportsApi";
 import type { DashboardRange } from "../../types/dashboard";
 
-export function ExportPdfButton({ range }: { range: DashboardRange }) {
+export function ExportPdfButton({ range, offset = 0 }: { range: DashboardRange; offset?: number }) {
   const { t } = useTranslation();
   const [isExporting, setIsExporting] = useState(false);
 
   async function handleExport() {
     setIsExporting(true);
     try {
-      const blob = await reportsApi.exportPdf(range);
+      const blob = await reportsApi.exportPdf(range, offset);
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `la-aura-report-${range}.pdf`;
+      link.download = `la-aura-report-${range}${offset ? `-${offset}` : ""}.pdf`;
       document.body.appendChild(link);
       link.click();
       link.remove();

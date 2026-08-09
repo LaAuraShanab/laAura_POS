@@ -10,6 +10,8 @@ import { Skeleton } from "../../components/ui/Skeleton";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../../components/ui/table";
 import { CustomerFormModal } from "./CustomerFormModal";
+import { CustomerAccountModal } from "./CustomerAccountModal";
+import { formatCurrency } from "../../lib/format";
 import type { Customer } from "../../types/customer";
 import { ApiError } from "../../types/api";
 
@@ -36,6 +38,7 @@ export function CustomersListPage() {
   const [pendingDeactivate, setPendingDeactivate] = useState<Customer | null>(null);
   const [isDeactivating, setIsDeactivating] = useState(false);
   const [deactivateError, setDeactivateError] = useState<string | null>(null);
+  const [accountCustomer, setAccountCustomer] = useState<Customer | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setSearch(searchInput), 300);
@@ -109,6 +112,9 @@ export function CustomersListPage() {
               <TableRow className="hover:bg-transparent">
                 <TableHead className="px-4 py-2.5 font-medium text-ink/55">{t("products.colName")}</TableHead>
                 <TableHead className="px-4 py-2.5 font-medium text-ink/55">{t("common.phone")}</TableHead>
+                <TableHead className="px-4 py-2.5 text-end font-medium text-ink/55">
+                  {t("customers.balanceOwed")}
+                </TableHead>
                 {canManage && (
                   <TableHead className="px-4 py-2.5 text-end font-medium text-ink/55">
                     {t("products.colActions")}
@@ -119,7 +125,7 @@ export function CustomersListPage() {
             <TableBody>
               {(!customers || customers.length === 0) && (
                 <TableRow className="hover:bg-transparent">
-                  <TableCell colSpan={canManage ? 3 : 2} className="px-4 py-10 text-center text-ink/40">
+                  <TableCell colSpan={canManage ? 4 : 3} className="px-4 py-10 text-center text-ink/40">
                     <UsersIcon className="mx-auto mb-2 h-8 w-8 text-ink/20" aria-hidden="true" />
                     {t("customers.noCustomersYet")}
                   </TableCell>
@@ -128,14 +134,31 @@ export function CustomersListPage() {
               {customers?.map((customer) => (
                 <TableRow key={customer.id} className="border-ink/10 hover:bg-sage/6">
                   <TableCell className="px-4 py-2.5">
-                    <div className="flex items-center gap-2.5">
+                    <button
+                      onClick={() => setAccountCustomer(customer)}
+                      className="flex items-center gap-2.5 text-start"
+                      title={t("customers.viewAccount")}
+                    >
                       <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gold-soft/40 text-[10px] font-medium text-gold">
                         {initialsOf(customer.name)}
                       </div>
-                      <span className="font-medium text-ink">{customer.name}</span>
-                    </div>
+                      <span className="font-medium text-ink hover:text-forest">{customer.name}</span>
+                    </button>
                   </TableCell>
                   <TableCell className="px-4 py-2.5 text-ink/70">{customer.phone ?? "—"}</TableCell>
+                  <TableCell className="px-4 py-2.5 text-end tabular-nums">
+                    {customer.balance && customer.balance > 0 ? (
+                      <button
+                        onClick={() => setAccountCustomer(customer)}
+                        className="font-semibold text-gold hover:underline"
+                        title={t("customers.viewAccount")}
+                      >
+                        {formatCurrency(customer.balance)}
+                      </button>
+                    ) : (
+                      <span className="text-ink/30">—</span>
+                    )}
+                  </TableCell>
                   {canManage && (
                     <TableCell className="px-4 py-2.5">
                       <div className="flex justify-end gap-1">
@@ -169,6 +192,10 @@ export function CustomersListPage() {
       )}
 
       {showForm && <CustomerFormModal customer={editingCustomer} onClose={() => setShowForm(false)} />}
+
+      {accountCustomer && (
+        <CustomerAccountModal customer={accountCustomer} onClose={() => setAccountCustomer(null)} />
+      )}
 
       {pendingDeactivate && (
         <ConfirmDialog

@@ -1,5 +1,8 @@
+// Israeli New Shekel. The ₪ glyph is present in the app's Inter/Cairo fonts.
+export const CURRENCY_SYMBOL = "₪";
+
 export function formatCurrency(value: number): string {
-  return `$${value.toFixed(2)}`;
+  return `${CURRENCY_SYMBOL}${value.toFixed(2)}`;
 }
 
 export function formatDateTime(iso: string): string {

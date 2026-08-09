@@ -40,6 +40,12 @@ enum SaleStatus {
   REFUNDED
 }
 
+enum SalePaymentStatus {
+  PAID
+  UNPAID
+  PARTIALLY_PAID
+}
+
 model User {
   id           String     @id @default(uuid())
   name         String
@@ -55,6 +61,7 @@ model User {
   inventoryUpdates InventoryHistory[] @relation("InventoryUpdatedBy")
   auditLogs        AuditLog[]
   refreshTokens    RefreshToken[]
+  paymentsRecorded CustomerPayment[]  @relation("PaymentRecordedBy")
 
   @@map("users")
 }
@@ -154,7 +161,8 @@ model Customer {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  sales Sale[]
+  sales    Sale[]
+  payments CustomerPayment[]
 
   @@map("customers")
 }
@@ -174,12 +182,15 @@ model Sale {
   paymentMethod PaymentMethod
   note          String?
   status        SaleStatus    @default(COMPLETED)
+  paymentStatus SalePaymentStatus @default(PAID)
+  amountPaid    Decimal       @db.Decimal(10, 2) @default(0)
   voidedAt      DateTime?
   voidReason    String?
   voidedById    String?
   voidedBy      User?         @relation("SaleVoidedBy", fields: [voidedById], references: [id])
 
-  items SaleItem[]
+  items       SaleItem[]
+  allocations PaymentAllocation[]
 
   @@index([cashierId])
   @@index([customerId])
@@ -218,6 +229,36 @@ model SaleItemExtra {
 
   @@index([saleItemId])
   @@map("sale_item_extras")
+}
+
+model CustomerPayment {
+  id           String        @id @default(uuid())
+  customerId   String
+  customer     Customer      @relation(fields: [customerId], references: [id])
+  amount       Decimal       @db.Decimal(10, 2)
+  method       PaymentMethod @default(CASH)
+  receivedAt   DateTime      @default(now())
+  recordedById String
+  recordedBy   User          @relation("PaymentRecordedBy", fields: [recordedById], references: [id])
+  note         String?
+
+  allocations PaymentAllocation[]
+
+  @@index([customerId])
+  @@map("customer_payments")
+}
+
+model PaymentAllocation {
+  id        String          @id @default(uuid())
+  paymentId String
+  payment   CustomerPayment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  saleId    String
+  sale      Sale            @relation(fields: [saleId], references: [id])
+  amount    Decimal         @db.Decimal(10, 2)
+
+  @@index([paymentId])
+  @@index([saleId])
+  @@map("payment_allocations")
 }
 
 model InventoryHistory {
