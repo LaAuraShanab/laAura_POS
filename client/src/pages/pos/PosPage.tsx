@@ -160,7 +160,7 @@ export function PosPage() {
       <div className="lg:col-span-2">
         <ProductGrid onSelect={addProduct} />
       </div>
-      <div className="flex flex-col rounded-3xl glass-surface p-6 shadow-resting lg:sticky lg:top-6 lg:h-[calc(100vh-3rem)]">
+      <div className="flex flex-col overflow-y-auto rounded-3xl glass-surface p-6 shadow-resting lg:sticky lg:top-6 lg:h-[calc(100vh-3rem)]">
         <div className="mb-3 flex flex-shrink-0 items-center justify-between">
           <div className="flex items-baseline gap-2">
             <h2 className="font-serif text-xl italic text-ink">{t("pos.cart")}</h2>

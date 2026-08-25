@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
@@ -62,6 +62,12 @@ export function PaymentPanel({
   const receivedNum = Number(cashReceived) || 0;
   const changeDue = receivedNum - grandTotal;
 
+  // Discount/tax/note/cash-received are used on a minority of sales, so they're
+  // tucked behind a collapsed toggle — the constantly-visible list of fields was
+  // squeezing the cart's item list down to almost nothing and causing mis-taps.
+  const [showMore, setShowMore] = useState(false);
+  const hasActiveExtras = discount > 0 || tax > 0 || note.trim() !== "";
+
   // Clear the received amount when the cart empties (after a sale completes/holds).
   useEffect(() => {
     if (disabled) setCashReceived("");
@@ -69,35 +75,6 @@ export function PaymentPanel({
 
   return (
     <div className="space-y-3 border-t border-ink/10 pt-3">
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <Label htmlFor="payment-discount" className="text-xs text-ink/55">
-            {t("pos.discount")}
-          </Label>
-          <Input
-            id="payment-discount"
-            type="number"
-            min={0}
-            step="0.01"
-            value={discount}
-            onChange={(e) => onDiscountChange(Number(e.target.value) || 0)}
-          />
-        </div>
-        <div>
-          <Label htmlFor="payment-tax" className="text-xs text-ink/55">
-            {t("pos.tax")}
-          </Label>
-          <Input
-            id="payment-tax"
-            type="number"
-            min={0}
-            step="0.01"
-            value={tax}
-            onChange={(e) => onTaxChange(Number(e.target.value) || 0)}
-          />
-        </div>
-      </div>
-
       <Select value={paymentMethod} onValueChange={(value) => onPaymentMethodChange(value as PaymentMethod)}>
         <SelectTrigger className="w-full">
           <SelectValue />
@@ -110,22 +87,6 @@ export function PaymentPanel({
           ))}
         </SelectContent>
       </Select>
-
-      <div>
-        <Label htmlFor="payment-note" className="text-xs text-ink/55">
-          {t("pos.note")}{" "}
-          <span className="font-normal text-ink/40">{t("pos.noteOptional")}</span>
-        </Label>
-        <textarea
-          id="payment-note"
-          value={note}
-          onChange={(e) => onNoteChange(e.target.value)}
-          rows={2}
-          maxLength={500}
-          placeholder={t("pos.notePlaceholder")}
-          className="w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-        />
-      </div>
 
       <label
         className={`flex items-start gap-2.5 rounded-xl border px-3 py-2.5 transition-colors ${
@@ -146,6 +107,112 @@ export function PaymentPanel({
         </span>
       </label>
 
+      <button
+        type="button"
+        onClick={() => setShowMore((v) => !v)}
+        aria-expanded={showMore}
+        className="flex w-full items-center justify-between rounded-xl border border-ink/10 bg-sage/6 px-3 py-2.5 text-start transition-colors hover:bg-sage/10"
+      >
+        <span className="flex items-center gap-1.5 text-sm font-medium text-ink">
+          {t("pos.moreOptions")}
+          {hasActiveExtras && !showMore && (
+            <span className="h-1.5 w-1.5 rounded-full bg-gold" aria-hidden="true" />
+          )}
+        </span>
+        <ChevronDown
+          className="h-4 w-4 flex-shrink-0 text-ink/40 transition-transform duration-200"
+          style={{ transform: showMore ? "rotate(180deg)" : undefined }}
+          aria-hidden="true"
+        />
+      </button>
+
+      <div
+        className="overflow-hidden transition-[max-height] duration-300 ease-[var(--ease-standard)]"
+        style={{ maxHeight: showMore ? 420 : 0 }}
+      >
+        <div className="space-y-3 pt-0.5">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label htmlFor="payment-discount" className="text-xs text-ink/55">
+                {t("pos.discount")}
+              </Label>
+              <Input
+                id="payment-discount"
+                type="number"
+                min={0}
+                step="0.01"
+                value={discount}
+                onChange={(e) => onDiscountChange(Number(e.target.value) || 0)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="payment-tax" className="text-xs text-ink/55">
+                {t("pos.tax")}
+              </Label>
+              <Input
+                id="payment-tax"
+                type="number"
+                min={0}
+                step="0.01"
+                value={tax}
+                onChange={(e) => onTaxChange(Number(e.target.value) || 0)}
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="payment-note" className="text-xs text-ink/55">
+              {t("pos.note")}{" "}
+              <span className="font-normal text-ink/40">{t("pos.noteOptional")}</span>
+            </Label>
+            <textarea
+              id="payment-note"
+              value={note}
+              onChange={(e) => onNoteChange(e.target.value)}
+              rows={2}
+              maxLength={500}
+              placeholder={t("pos.notePlaceholder")}
+              className="w-full rounded-lg border border-input bg-transparent px-2.5 py-1.5 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            />
+          </div>
+
+          {showCashCalc && (
+            <div className="space-y-2 rounded-xl bg-sage/6 p-3">
+              <div>
+                <Label htmlFor="cash-received" className="text-xs text-ink/55">
+                  {t("pos.cashReceived")}
+                </Label>
+                <Input
+                  id="cash-received"
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  inputMode="decimal"
+                  value={cashReceived}
+                  onChange={(e) => setCashReceived(e.target.value)}
+                  placeholder="0.00"
+                />
+              </div>
+              {cashReceived !== "" && (
+                <div className="flex justify-between text-sm font-medium">
+                  {changeDue >= 0 ? (
+                    <>
+                      <span className="text-ink/70">{t("pos.changeDue")}</span>
+                      <span className="font-bold text-forest">{formatCurrency(changeDue)}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-ink/70">{t("pos.shortBy")}</span>
+                      <span className="font-bold text-destructive">{formatCurrency(Math.abs(changeDue))}</span>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
       <div className="space-y-1 text-sm">
         <div className="flex justify-between text-ink/70">
           <span>{t("pos.subtotal")}</span>
@@ -164,41 +231,6 @@ export function PaymentPanel({
           <span>{formatCurrency(grandTotal)}</span>
         </div>
       </div>
-
-      {showCashCalc && (
-        <div className="space-y-2 rounded-xl bg-sage/6 p-3">
-          <div>
-            <Label htmlFor="cash-received" className="text-xs text-ink/55">
-              {t("pos.cashReceived")}
-            </Label>
-            <Input
-              id="cash-received"
-              type="number"
-              min={0}
-              step="0.01"
-              inputMode="decimal"
-              value={cashReceived}
-              onChange={(e) => setCashReceived(e.target.value)}
-              placeholder="0.00"
-            />
-          </div>
-          {cashReceived !== "" && (
-            <div className="flex justify-between text-sm font-medium">
-              {changeDue >= 0 ? (
-                <>
-                  <span className="text-ink/70">{t("pos.changeDue")}</span>
-                  <span className="font-bold text-forest">{formatCurrency(changeDue)}</span>
-                </>
-              ) : (
-                <>
-                  <span className="text-ink/70">{t("pos.shortBy")}</span>
-                  <span className="font-bold text-destructive">{formatCurrency(Math.abs(changeDue))}</span>
-                </>
-              )}
-            </div>
-          )}
-        </div>
-      )}
 
       <Button
         className="h-12 w-full rounded-2xl text-base font-semibold"

@@ -13,7 +13,7 @@ export function TrendChartCard({
   onPointClick?: (point: DashboardSeriesPoint) => void;
 }) {
   const { t } = useTranslation();
-  const { activity, averages } = summary;
+  const { activity, averages, totals } = summary;
 
   return (
     <Card className="gap-0 rounded-3xl glass-surface p-7 shadow-resting ring-0 transition-shadow duration-200 hover:shadow-raised">
@@ -26,7 +26,7 @@ export function TrendChartCard({
 
       <TrendChart data={summary.series} onPointClick={onPointClick} />
 
-      <div className="mt-6 grid grid-cols-3 gap-6 border-t border-ink/8 pt-5">
+      <div className="mt-6 grid grid-cols-2 gap-6 border-t border-ink/8 pt-5 sm:grid-cols-4">
         <div>
           <p className="mb-1 text-[11px] tracking-[0.05em] text-ink/50 uppercase">{t("dashboard.transactions")}</p>
           <p className="font-heading text-xl font-medium text-ink">{activity.totalTransactions}</p>
@@ -38,6 +38,10 @@ export function TrendChartCard({
         <div>
           <p className="mb-1 text-[11px] tracking-[0.05em] text-ink/50 uppercase">{t("dashboard.averageSale")}</p>
           <p className="font-heading text-xl font-medium text-ink">{formatCurrency(averages.avgSaleValue)}</p>
+        </div>
+        <div>
+          <p className="mb-1 text-[11px] tracking-[0.05em] text-ink/50 uppercase">{t("dashboard.totalSales")}</p>
+          <p className="font-heading text-xl font-medium text-gold">{formatCurrency(totals.periodTotal)}</p>
         </div>
       </div>
     </Card>

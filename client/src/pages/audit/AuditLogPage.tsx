@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useAuditLogsQuery } from "../../hooks/useAuditLogs";
 import { useUsersQuery } from "../../hooks/useUsers";
 import { Input } from "../../components/ui/Input";
+import { Pagination } from "../../components/ui/Pagination";
 import { Skeleton } from "../../components/ui/Skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../../components/ui/table";
@@ -212,33 +213,7 @@ export function AuditLogPage() {
                   total,
                 })}
               </span>
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="rounded-full px-2 py-1 hover:bg-sage/10 disabled:opacity-30"
-                >
-                  {t("common.previous")}
-                </button>
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
-                  <button
-                    key={n}
-                    onClick={() => setPage(n)}
-                    className={`h-6 w-6 rounded-full ${
-                      n === page ? "bg-gold text-forest-deep" : "hover:bg-sage/10"
-                    }`}
-                  >
-                    {n}
-                  </button>
-                ))}
-                <button
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="rounded-full px-2 py-1 hover:bg-sage/10 disabled:opacity-30"
-                >
-                  {t("common.next")}
-                </button>
-              </div>
+              <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
             </div>
           )}
         </div>
