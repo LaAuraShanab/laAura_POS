@@ -21,6 +21,10 @@ export async function getAnalytics(req: Request, res: Response) {
 
 export async function exportPdf(req: Request, res: Response) {
   const range = req.query.range as DashboardRange;
-  const analytics = await reportsService.getReportingAnalytics(range, parseOffset(req));
-  renderAnalyticsPdf(analytics, res);
+  const offset = parseOffset(req);
+  const [summary, analytics] = await Promise.all([
+    reportsService.getDashboardSummary(range, offset),
+    reportsService.getReportingAnalytics(range, offset),
+  ]);
+  renderAnalyticsPdf(summary, analytics, res);
 }

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useProductsQuery, useDeleteProduct } from "../../hooks/useProducts";
 import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
+import { Pagination } from "../../components/ui/Pagination";
 import { Skeleton } from "../../components/ui/Skeleton";
 import { StockBadge } from "../../components/ui/StockBadge";
 import { ConfirmDialog } from "../../components/ui/ConfirmDialog";
@@ -345,33 +346,7 @@ export function ProductsListPage() {
                       total: sorted.length,
                     })}
                   </span>
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => setPage((p) => Math.max(1, p - 1))}
-                      disabled={currentPage === 1}
-                      className="rounded-full px-2 py-1 hover:bg-sage/10 disabled:opacity-30"
-                    >
-                      {t("common.previous")}
-                    </button>
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
-                      <button
-                        key={n}
-                        onClick={() => setPage(n)}
-                        className={`h-6 w-6 rounded-full ${
-                          n === currentPage ? "bg-gold text-forest-deep" : "hover:bg-sage/10"
-                        }`}
-                      >
-                        {n}
-                      </button>
-                    ))}
-                    <button
-                      onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                      disabled={currentPage === totalPages}
-                      className="rounded-full px-2 py-1 hover:bg-sage/10 disabled:opacity-30"
-                    >
-                      {t("common.next")}
-                    </button>
-                  </div>
+                  <Pagination page={currentPage} totalPages={totalPages} onPageChange={setPage} />
                 </div>
               )}
             </div>
